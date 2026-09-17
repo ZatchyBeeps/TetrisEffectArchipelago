@@ -2,7 +2,7 @@ local APCli = require("lua-apclientpp")
 
 require("utils")
 
-local GameName = "ULTRAKILL"
+local GameName = "Tetris Effect: Connected"
 local APVersion = { 0, 6, 7 }
 local modVersion = { 0, 0, 1 }
 local items_handling = APCli.Permission.AUTO_ENABLED
