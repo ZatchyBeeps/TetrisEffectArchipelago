@@ -42,6 +42,15 @@ function APZenIsStageUnlocked(stageIndex)
     return false
 end
 
+function APCheckRank(Score, Stage)
+    -- Compare score to maybe a row of tables with rank info for the stage
+    -- for _, ReqScore in ipairs(RankData[Stage]) do
+        -- Compare and send checks
+        -- Stop and return  when we're going lower than the current ReqScore
+    -- end
+
+end
+
 function Connect(_server, _slot, _password)
     server = _server
     slot = _slot
