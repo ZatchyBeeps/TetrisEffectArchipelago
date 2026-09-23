@@ -189,7 +189,7 @@ function HookFunctions()
     ExecuteWithDelay(2000, function()
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnConnect",
             function(self, server, port, slot, password)
-                if server():get():ToString() == "" then return end
+                if server:get():ToString() == "" then return end
                 connectToAp(server:get():ToString() .. ":" .. port:get():ToString(), slot:get():ToString(), password:get():ToString())
             end)
 
@@ -230,7 +230,10 @@ RegisterKeyBind(Key.F8, function() -- Debug
 end)
 
 RegisterKeyBind(Key.F9, function() -- Debug
-    disconnect()
+    ExecuteInGameThread(function()
+        modHelper = FindFirstOf("ModActor_C")
+        modHelper.ConnectionHelper:OnDisconnect()
+    end)
 end)
 
 

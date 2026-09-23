@@ -11,7 +11,7 @@ local message_format = APCli.RenderFormat.TEXT
 ---@type APClient
 ap = nil
 
-options = nil
+DeathLinkStatus = nil
 slotData = nil
 isGameCompleted = false
 itemList = {}
@@ -74,13 +74,14 @@ function Connect(_server, _slot, _password)
         ap:ConnectSlot(slot, password, items_handling, { "Lua-APClientPP" }, APVersion)
     end
 
+    ---@param RSlotData {[string]: any}
     function OnSlotConnect(RSlotData)
         PrintToAll("Slot succesfully connected")
-        print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
-        print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
+        --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
+        --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
         LocationsMissing = ap.missing_locations
-        slotData = RSlotData
-        options = slotData.options
+        DeathLinkStatus = RSlotData.death_link
+        print(tostring(DeathLinkStatus))
 
         for _, id in ipairs(ap.checked_locations) do
             CheckLocation(id)
@@ -93,12 +94,12 @@ function Connect(_server, _slot, _password)
             end
         end
 
-        if options.DeathLink == 1 then
+        if DeathLinkStatus ~= 3 then
             isDeathLink = true
             ap:ConnectUpdate(nil, { "Lua-APClientPP", "DeathLink" })
             PrintToAll("DeathLink has been enabled")
         end
-
+        
         -- To-do: Call for lock items here
     end
 
@@ -201,17 +202,13 @@ function connectToAp(host, slot, password)
         Connect(host, slot, password)
     end)
 
-    LoopAsync(200, function()
+    LoopAsync(400, function()
         if ap == nil then
             return true
         end
-        xpcall(function()
-            ap:poll()
-            --print("polling")
-        end, 
-		function()
-            ap:disconnect()
-        end)
+        ap:poll()
+        --print("polling")
+
         return false
     end)
 end
