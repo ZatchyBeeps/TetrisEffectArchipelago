@@ -151,12 +151,21 @@ function HookFunctions()
         end)
     end)
 
-    -- This gets called almost every time score gets added, despite it's name. Returns current total score which includes previous stages, so it need to be substracted for rank calc
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
-        function(self, Score)
-            -- To-do: calculate per-stage rank requirements
+    ---This function is called everytime a mino is placed in the board (either by hard or soft drop)
+    ---@param self UObject
+    ---@param ErasedLineNumber any | integer Amount of lines cleared. 0 if none
+    ---@param TSpinRank any | integer Tspin kind if a tspin was done. 0 otherwise
+    ---@param Ren any | integer Combo amount
+    ---@param B2B any | boolean Was the line cleared a back to back?
+    ---@param AllClear any | boolean Was an all clear achieved after this line clear?
+    ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
+    ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
+        function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
+
+            -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
-            CurrentScore = Score - AccumulatedScore
+            CurrentScore = Score:get() - AccumulatedScore
             -- APCheckRank(CurrentScore, CurrentStage)
         end)
 
@@ -231,8 +240,11 @@ end)
 
 RegisterKeyBind(Key.F9, function() -- Debug
     ExecuteInGameThread(function()
+        ---@type AModActor_C
         modHelper = FindFirstOf("ModActor_C")
-        modHelper.ConnectionHelper:OnDisconnect()
+        if modHelper ~= nil and modHelper:IsValid() then
+        modHelper.ConnectionHelper:OnDisconnect() end
+        disconnect()
     end)
 end)
 

@@ -11,7 +11,7 @@ local message_format = APCli.RenderFormat.TEXT
 ---@type APClient
 ap = nil
 
-DeathLinkStatus = nil
+GameOptions = nil
 slotData = nil
 isGameCompleted = false
 itemList = {}
@@ -20,8 +20,15 @@ server = nil
 slot = nil
 password = nil
 isDeathLink = false
+ZenStoryByAreas = false
+EffectModeEnabled = false
+ExcludedModes = {}
+RanksanityEnabled = false
 
-local OasisLevels = MakeSet({ 2, 5 }) -- 5 = master
+local UnlockedZenLevels = MakeSet(26)
+local UnlockedEffectLevels = MakeSet(16)
+local UnlockedGroups = MakeSet(10)
+local RequiresVerify = false
 
 function APCheckOasisLevelUnlocked(levelIndex)
     if not OasisLevels[levelIndex] then
@@ -31,24 +38,22 @@ function APCheckOasisLevelUnlocked(levelIndex)
 end
 
 function APZenIsAreaUnlocked(areaIndex)
-	-- Change this later with actual checking
+    -- Change this later with actual checking
     if areaIndex == 2 then return true end
     return false
 end
 
 function APZenIsStageUnlocked(stageIndex)
--- Change this later with actual checking
-    if stageIndex == 6 or stageIndex == 7 or stageIndex == 8 then return true end
-    return false
+    -- Change this later with actual checking
+    return UnlockedZenLevels[stageIndex] 
 end
 
 function APCheckRank(Score, Stage)
     -- Compare score to maybe a row of tables with rank info for the stage
     -- for _, ReqScore in ipairs(RankData[Stage]) do
-        -- Compare and send checks
-        -- Stop and return  when we're going lower than the current ReqScore
+    -- Compare and send checks
+    -- Stop and return  when we're going lower than the current ReqScore
     -- end
-
 end
 
 function Connect(_server, _slot, _password)
@@ -57,7 +62,7 @@ function Connect(_server, _slot, _password)
     password = _password
 
     function OnSocketConnected()
-        PrintToAll("Socket connected succesfully")
+        print("Socket connected succesfully")
     end
 
     function OnSocketError(reason)
@@ -65,7 +70,7 @@ function Connect(_server, _slot, _password)
     end
 
     function OnSocketDisconnected()
-        PrintToAll("Socket was disconnected")
+        PrintToAll("Connection to archipelago was lost. Reconnecting...")
         itemList = {}
     end
 
@@ -74,43 +79,51 @@ function Connect(_server, _slot, _password)
         ap:ConnectSlot(slot, password, items_handling, { "Lua-APClientPP" }, APVersion)
     end
 
-    ---@param RSlotData {[string]: any}
     function OnSlotConnect(RSlotData)
         PrintToAll("Slot succesfully connected")
         --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
         --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
         LocationsMissing = ap.missing_locations
-        DeathLinkStatus = RSlotData.death_link
-        print(tostring(DeathLinkStatus))
-
+        GameOptions = RSlotData
+        for key, value in pairs(GameOptions) do
+            print(key .. ": " .. tostring(value))
+        end
+        print("Getting locations")
         for _, id in ipairs(ap.checked_locations) do
             CheckLocation(id)
         end
 
-        if slotData.Version then
-            if slotData.Version[1] ~= modVersion[1] and slotData.Version[2] ~= modVersion[2] and slotData.Version[3] ~= modVersion[3] then
-                PrintToAll("Warning. Mod has different version from the one provided in the slot data (ModV: " ..
-                table.concat(modVersion, ".") .. ", SlotDataV: " .. table.concat(slotData.Version, ".") .. ")")
-            end
-        end
 
-        if DeathLinkStatus ~= 3 then
+        print("Enabling DeathLink")
+        if GameOptions.death_link ~= 3 then
             isDeathLink = true
             ap:ConnectUpdate(nil, { "Lua-APClientPP", "DeathLink" })
             PrintToAll("DeathLink has been enabled")
         end
-        
-        -- To-do: Call for lock items here
+
+        print("Getting slot info")
+        ZenStoryByAreas = GameOptions.unlock_method
+        EffectModeEnabled = GameOptions.is_include_effect
+        ExcludedModes = GameOptions.excluded_modes
+        RanksanityEnabled = GameOptions.is_ranksanity
+
+        --ParseItemUnlocks()
+        print("Done")
+        Helper_OnConnected()
+
+
+        -- To-do,Call for lock items here
     end
 
     function OnSlotRefused(reasons)
         PrintToAll("Slot has refused connection. Reason: " .. table.concat(reasons, ", "))
+        Helper_OnDisconnect()
     end
 
     function OnReceiveItems(ItemsReceived)
-        PrintToAll("Items received: " .. #ItemsReceived)
+        --PrintToAll("Items received: " .. #ItemsReceived)
         for _, item in ipairs(ItemsReceived) do
-            print(ap:get_location_name(item.item, nil))
+            ParseItem(ap:get_item_name(item.item, nil))
         end
     end
 
@@ -223,4 +236,104 @@ function disconnect()
     PrintToAll("Disconnected from archipelago")
 end
 
+ZenLevelItems = {
+    ['The Deep Unlock'] = 0,
+    ['Pharaoh\'s Code Unlock'] = 1,
+    ['Karma Wheel Unlock'] = 2,
+    ['Jellyfish Chorus Unlock'] = 3,
+    ['Da Vinci Unlock'] = 4,
+    ['Prayer Circles Unlock'] = 5,
+    ['Ritual Passion Unlock'] = 6,
+    ['Deserted Unlock'] = 7,
+    ['Dolphin Surf Unlock'] = 8,
+    ['Downtown Jazz Unlock'] = 9,
+    ['Spirit Canyon Unlock'] = 10,
+    ['Jewel Veil Unlock'] = 11,
+    ['Forest Dawn Unlock'] = 12,
+    ['Kaleidoscope Unlock'] = 13,
+    ['Turtle Dreams Unlock'] = 14,
+    ['Celebration Unlock'] = 15,
+    ['Sunset Breeze Unlock'] = 16,
+    ['Aurora Peak Unlock'] = 17,
+    ['Zen Blossoms Unlock'] = 18,
+    ['Ying & Yang Unlock'] = 19,
+    ['Hula Soul Unlock'] = 20,
+    ['Starfall Unlock'] = 21,
+    ['Balloon High Unlock'] = 22,
+    ['Mermaid Cove Unlock'] = 23,
+    ['Orbit Unlock'] = 24,
+    ['Stratosphere Unlock'] = 25,
+    ['Metamorphosis Unlock'] = 26
+}
 
+EffectLevelItems = {
+    ['Effect: Marathon Mode Unlock'] = 0,
+    ['Effect: Zone Marathon Mode Unlock'] = 1,
+    ['Effect: Ultra Mode Unlock'] = 2,
+    ['Effect: Sprint Mode Unlock'] = 3,
+    ['Effect: Master Mode Unlock'] = 4,
+    ['Effect: Classic Score Attack Mode Unlock'] = 5,
+    ['Effect: Chill Marathon Mode Unlock'] = 6,
+    ['Effect: Quick Play Mode Unlock'] = 7,
+    ['Effect: Playlist (Sea) Mode Unlock'] = 8,
+    ['Effect: Playlist (Wind) Mode Unlock'] = 9,
+    ['Effect: Playlist (World) Mode Unlock'] = 10,
+    ['Effect: All Clear Mode Unlock'] = 11,
+    ['Effect: Combo Mode Unlock'] = 12,
+    ['Effect: Target Mode Unlock'] = 13,
+    ['Effect: Countdown Mode Unlock'] = 14,
+    ['Effect: Purity Mode Unlock'] = 15,
+    ['Effect: Mystery Mode Unlock'] = 16
+}
+
+AreaItems = {
+    ['Area 1 Unlock'] = { 0, 1, 2 },
+    ['Area 2 Unlock'] = { 3, 4, 5, 6 },
+    ['Area 3 Unlock'] = { 7, 8, 9, 10 },
+    ['Area 4 Unlock'] = { 11, 12, 13, 14, 15 },
+    ['Area 5 Unlock'] = { 16, 17, 18, 19, 20 },
+    ['Area 6 Unlock'] = { 21, 22, 23, 24, 25 },
+    ['Metamorphosis Unlock'] = { 26 },
+    ['Effect: Classic Modes Unlock'] = { 0, 1, 2, 3, 4, 5 },
+    ['Effect: Relax Modes Unlock'] = { 6, 7, 8, 9, 10 },
+    ['Effect: Focus Modes Unlock'] = { 11, 12, 13 },
+    ['Effect: Adventurous Modes Unlock'] = { 14, 15, 16 }
+}
+
+
+---Validates the item name given and makes it available to the player
+---@param item_name string
+function ParseItem(item_name)
+    if string.find(item_name, "Unlock") ~= nil then
+        if ZenStoryByAreas then
+            if AreaItems[item_name] ~= nil then
+                InEffect = false
+                if string.find(item_name, "Effect:") ~= nil then InEffect = true end
+                for _, level in ipairs(AreaItems[item_name]) do
+                    if not InEffect then
+                        UnlockedZenLevels[level] = true
+                    else
+                        UnlockedEffectLevels[level] = true
+                    end
+                end
+                print("Received and unlocked levels of area: " .. item_name)
+                return
+            end
+        end
+        if ZenLevelItems[item_name] ~= nil then
+            UnlockedZenLevels[ZenLevelItems[item_name]] = true
+            print("Received and unlocked level: " .. item_name)
+            return
+        end
+        if EffectLevelItems[item_name] ~= nil then
+            UnlockedEffectLevels[EffectLevelItems[item_name]] = true
+            print("Received and unlocked mode: " .. item_name)
+            return
+        end
+        print("Received item \"" .. item_name .. "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+    elseif string.find(item_name, "Trap") ~= nil then
+        QueueTrap(item_name)
+    else
+        print("Received item \"" .. item_name .. "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+    end
+end
