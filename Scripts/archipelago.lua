@@ -48,7 +48,7 @@ function APZenIsStageUnlocked(stageIndex)
     return UnlockedZenLevels[stageIndex] 
 end
 
-function APCheckRank(Score, Stage)
+function APCheckRank(Score, Stage, Difficulty)
     -- Compare score to maybe a row of tables with rank info for the stage
     -- for _, ReqScore in ipairs(RankData[Stage]) do
     -- Compare and send checks

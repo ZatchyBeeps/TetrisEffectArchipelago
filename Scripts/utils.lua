@@ -73,3 +73,8 @@ TrapList = {
 
     end
 }
+
+function PerformTrap()
+
+end
+
