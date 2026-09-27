@@ -16,7 +16,7 @@ local CurrentStage = 0
 function HookFunctions()
     -- Tetris Effect uses a single Level for everything called PersistentLevel, loading others as streamed levels so we don't have to worry about hooking multiple times.
     -- We just need to prevent the hooking when booting of the game as it is another level (StartUp) before going to PersistentLevel
-    -- However, going into multiplayer does load another level. I need to add checks to prevent hooking if the player goes into multiplayer (and for when I implement connected mode) 
+    -- However, going into multiplayer does load another level. I need to add checks to prevent hooking if the player goes into multiplayer (and for when I implement connected mode)
 
     -- Oasis mode level selection
     RegisterHook(
@@ -26,10 +26,11 @@ function HookFunctions()
             local widget = self:get()
             --print(self:type())
             --print(widget:type())
-            
+
             -- Could be changed to InGameThread, haven't tested it
             ExecuteWithDelay(100, function()
-                local BList = widget.ScrollList.PanelList -- The list is already ordered the same way as in the item table
+                local BList = widget.ScrollList
+                .PanelList                                -- The list is already ordered the same way as in the item table
                 if BList:IsValid() then
                     BList:ForEach(function(index, elem)
                         if APCheckOasisLevelUnlocked(index) then
@@ -49,14 +50,23 @@ function HookFunctions()
     RegisterHook(
         "/Game/BluePrints/Menu/ZenStory/Actor/ActorMenuZenStoryStageSelect.ActorMenuZenStoryStageSelect_C:InitializeController",
         function(self)
+            CurrentStage = -1
             -- Unlike Oasis, we don't wanna be too fast as the game will be activating the stage actors after selecting a difficulty
             -- 50ms seems to be the sweet spot
             ExecuteWithDelay(50, function()
                 ---@type AZenStoryBaseManager_C
                 local ZenStoryManager = FindFirstOf("ZenStoryBaseManager_C")
-                if not ZenStoryManager:IsValid() then print("Failed to get manager, unobtained levels cannot be locked. Please report this error (ZenManager was not present)") return end
+                if not ZenStoryManager:IsValid() then
+                    print(
+                    "Failed to get manager, unobtained levels cannot be locked. Please report this error (ZenManager was not present)")
+                    return
+                end
                 local AreaList = ZenStoryManager.ZenStoryAreaList
-                if not AreaList:IsValid() then PrintToAll("Failed to get area list. Unobtained levels cannot be locked. Please report this error (AreaList returned not valid)") return end
+                if not AreaList:IsValid() then
+                    PrintToAll(
+                    "Failed to get area list. Unobtained levels cannot be locked. Please report this error (AreaList returned not valid)")
+                    return
+                end
                 local LastLevelUnlocked = 0
                 local stageLevels = 0
                 --print(tostring(thing:GetArrayNum()))
@@ -123,7 +133,7 @@ function HookFunctions()
             local ResIndex
 
             FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
-            for index, value in pairs(StageIndex) do -- Idk why StageIndex[0] doesn't work
+            for index, value in pairs(StageIndex) do
                 print(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
@@ -152,21 +162,28 @@ function HookFunctions()
     end)
 
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
-    ---This function is called everytime a mino is placed in the board (either by hard or soft drop)
-    ---@param self UObject
-    ---@param ErasedLineNumber any | integer Amount of lines cleared. 0 if none
-    ---@param TSpinRank any | integer Tspin kind if a tspin was done. 0 otherwise
-    ---@param Ren any | integer Combo amount
-    ---@param B2B any | boolean Was the line cleared a back to back?
-    ---@param AllClear any | boolean Was an all clear achieved after this line clear?
-    ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
-    ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
+        ---This function is called everytime a mino is placed in the board (either by hard or soft drop)
+        ---@param self UObject
+        ---@param ErasedLineNumber any | integer Amount of lines cleared. 0 if none
+        ---@param TSpinRank any | integer Tspin kind if a tspin was done. 0 otherwise
+        ---@param Ren any | integer Combo amount
+        ---@param B2B any | boolean Was the line cleared a back to back?
+        ---@param AllClear any | boolean Was an all clear achieved after this line clear?
+        ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
+        ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
         function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
+            if CurrentStage == -1 then
+                local StageIndex = {}
 
+                FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
+                for _, value in pairs(StageIndex) do
+                    CurrentStage = value
+                end
+            end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
-            CurrentScore = Score:get() - AccumulatedScore
-            -- APCheckRank(CurrentScore, CurrentStage)
+            CurrentScore = GetGameScore() - AccumulatedScore
+            APCheckRank(CurrentScore, CurrentStage, 3)
         end)
 
 
@@ -175,7 +192,7 @@ function HookFunctions()
     -- B) I find that method again and make a hook for it
     -- Option a is best tho since the player will not get to the result manager unless it's the last stage of the area, apart of the game over preventing it if they don't have the first stage of the next area
 
-    
+
     --TPPuzzleManager_C:SpawnTetrimino
 
 
@@ -199,7 +216,8 @@ function HookFunctions()
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnConnect",
             function(self, server, port, slot, password)
                 if server:get():ToString() == "" then return end
-                connectToAp(server:get():ToString() .. ":" .. port:get():ToString(), slot:get():ToString(), password:get():ToString())
+                connectToAp(server:get():ToString() .. ":" .. port:get():ToString(), slot:get():ToString(),
+                    password:get():ToString())
             end)
 
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnDisconnect",
@@ -243,7 +261,8 @@ RegisterKeyBind(Key.F9, function() -- Debug
         ---@type AModActor_C
         modHelper = FindFirstOf("ModActor_C")
         if modHelper ~= nil and modHelper:IsValid() then
-        modHelper.ConnectionHelper:OnDisconnect() end
+            modHelper.ConnectionHelper:OnDisconnect()
+        end
         disconnect()
     end)
 end)

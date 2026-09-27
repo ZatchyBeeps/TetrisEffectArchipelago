@@ -198,13 +198,11 @@ RankTables = {
 ---@return string | nil
 function RequestRank(score, level, difficulty)
     LevelTable = RankTables[level]
-    ResultRank = nil
+    ResultRank = "E"
     for rank, score_requirements in pairs(LevelTable) do
         if score_requirements[difficulty] < score then
             ResultRank = rank
-        else
-            return ResultRank
         end
     end
-    return nil
+    return ResultRank
 end

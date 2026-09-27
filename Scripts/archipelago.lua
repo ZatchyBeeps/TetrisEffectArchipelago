@@ -1,6 +1,7 @@
 local APCli = require("lua-apclientpp")
 
 require("utils")
+require("ranksanity_utils")
 
 local GameName = "Tetris Effect: Connected"
 local APVersion = { 0, 6, 7 }
@@ -54,6 +55,7 @@ function APCheckRank(Score, Stage, Difficulty)
     -- Compare and send checks
     -- Stop and return  when we're going lower than the current ReqScore
     -- end
+    print(RequestRank(Score, Stage, Difficulty))
 end
 
 function Connect(_server, _slot, _password)

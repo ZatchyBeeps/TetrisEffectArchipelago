@@ -52,6 +52,23 @@ function DisableBasicButton(button)
     end
 end
 
+
+function GetGameScore()
+
+    ---@type ATPPuzzleManager_C
+    manager = FindFirstOf("TPPuzzleManager_C")
+    print(manager:type())
+    if manager:IsValid() then
+        print("Valid")
+        result = {}
+        manager:GetScore(false, result)
+        for _, value in pairs(result) do
+            print(tostring(value))
+            return value
+        end
+    end
+end
+
 function QueueTrap(trap_name)
     if trap_name == "Lines Trap" then
         --Implement lines trap
