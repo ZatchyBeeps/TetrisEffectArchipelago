@@ -191,8 +191,20 @@ RankTables = {
         ["SS"] = {8350, 11150, 21000},}
 }
 
+
+---@param score integer Current score of player
+---@param level integer Level index
+---@param difficulty integer What difficulty is the player on? (1: easy, 2: normal, 3: hard)
+---@return string | nil
 function RequestRank(score, level, difficulty)
-        LevelTable = RankTables[0]
-    for index, value in pairs(LevelTable) do
-    end 
+    LevelTable = RankTables[level]
+    ResultRank = nil
+    for rank, score_requirements in pairs(LevelTable) do
+        if score_requirements[difficulty] < score then
+            ResultRank = rank
+        else
+            return ResultRank
+        end
+    end
+    return nil
 end

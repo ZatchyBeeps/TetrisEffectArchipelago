@@ -45,7 +45,7 @@ end
 
 function APZenIsStageUnlocked(stageIndex)
     -- Change this later with actual checking
-    return UnlockedZenLevels[stageIndex] 
+    return UnlockedZenLevels[stageIndex]
 end
 
 function APCheckRank(Score, Stage, Difficulty)
@@ -313,7 +313,7 @@ function ParseItem(item_name)
                     if not InEffect then
                         UnlockedZenLevels[level] = true
                     else
-                        UnlockedEffectLevels[level] = true
+                        if not CheckIfModelIsSkipped(item_name) then UnlockedEffectLevels[level] = true end
                     end
                 end
                 print("Received and unlocked levels of area: " .. item_name)
@@ -330,10 +330,23 @@ function ParseItem(item_name)
             print("Received and unlocked mode: " .. item_name)
             return
         end
-        print("Received item \"" .. item_name .. "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        print("Received item \"" ..
+        item_name ..
+        "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then
         QueueTrap(item_name)
     else
-        print("Received item \"" .. item_name .. "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+        print("Received item \"" ..
+        item_name ..
+        "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+    end
+end
+
+function CheckIfModelIsSkipped(effect_mode)
+    for index, value in ipairs(ExcludedModes) do
+        if string.find(effect_mode, value) ~= nil then
+            return true
+        end
+        return false
     end
 end
