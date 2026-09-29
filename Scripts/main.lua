@@ -11,6 +11,7 @@ local firstRun = true
 local CurrentScore = 0
 local AccumulatedScore = 0
 local CurrentStage = 0
+local OnEffectMode = false
 
 
 function HookFunctions()
@@ -28,12 +29,11 @@ function HookFunctions()
             --print(widget:type())
 
             -- Could be changed to InGameThread, haven't tested it
-            ExecuteWithDelay(100, function()
-                local BList = widget.ScrollList
-                .PanelList                                -- The list is already ordered the same way as in the item table
+            ExecuteInGameThread(function()
+                local BList = widget.ScrollList.PanelList                                -- The list is already ordered the same way as in the item table
                 if BList:IsValid() then
                     BList:ForEach(function(index, elem)
-                        if APCheckOasisLevelUnlocked(index) then
+                        if APCheckOasisLevelUnlocked(index-1) then
                             elem:get():SetIsEnabled(false)
                             elem:get().IsInitialize = false
                         else
@@ -161,6 +161,10 @@ function HookFunctions()
             end
         end)
     end)
+
+    -- RegisterHook("PauseResultManager_C:SetResultRank", function(self)
+    -- self:get().ResultScoreRank
+    --end)
 
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
         ---This function is called everytime a mino is placed in the board (either by hard or soft drop)

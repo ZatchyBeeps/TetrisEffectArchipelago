@@ -34,7 +34,7 @@ local UnlockedGroups = MakeSet(10)
 local RequiresVerify = false
 
 function APCheckOasisLevelUnlocked(levelIndex)
-    if not OasisLevels[levelIndex] then
+    if not UnlockedEffectLevels[levelIndex] then
         return true
     end
     return false
