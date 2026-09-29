@@ -1,3 +1,54 @@
+ZenLevels = {
+    [ 0] = 'The Deep',
+    [ 1] = 'Pharaoh\'s Code',
+    [ 2] = 'Karma Wheel',
+    [ 3] = 'Jellyfish Chorus',
+    [ 4] = 'Da Vinci',
+    [ 5] = 'Prayer Circles',
+    [ 6] = 'Ritual Passion',
+    [ 7] = 'Deserted',
+    [ 8] = 'Dolphin Surf',
+    [ 9] = 'Downtown Jazz',
+    [10] = 'Spirit Canyon',
+    [11] = 'Jewel Veil',
+    [12] = 'Forest Dawn',
+    [13] = 'Kaleidoscope',
+    [14] = 'Turtle Dreams',
+    [15] = 'Celebration',
+    [16] = 'Sunset Breeze',
+    [17] = 'Aurora Peak',
+    [18] = 'Zen Blossoms',
+    [19] = 'Ying & Yang',
+    [20] = 'Hula Soul',
+    [21] = 'Starfall',
+    [22] = 'Balloon High',
+    [23] = 'Mermaid Cove',
+    [24] = 'Orbit',
+    [25] = 'Stratosphere',
+    [26] = 'Metamorphosis'
+}
+
+EffectLevels = {
+    [ 0] = 'Marathon',
+    [ 1] = 'Zone Marathon',
+    [ 2] = 'Ultra',
+    [ 3] = 'Sprint',
+    [ 4] = 'Master',
+    [ 5] = 'Classic Score Attack',
+    [ 6] = 'Chill Marathon',
+    [ 7] = 'Quick Play',
+    [ 8] = 'Playlist (Sea)',
+    [ 9] = 'Playlist (Wind)',
+    [10] = 'Playlist (World)',
+    [11] = 'All Clear',
+    [12] = 'Combo',
+    [13] = 'Target',
+    [14] = 'Countdown',
+    [15] = 'Purity',
+    [16] = 'Mystery'
+}
+
+
 ---@param size integer
 ---@param at_start? integer
 ---@return {[integer]: boolean}

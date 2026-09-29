@@ -137,6 +137,7 @@ function HookFunctions()
                 print(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
+            APClearStage(ResIndex, false)
             --print(tostring(ResIndex))
             if not APZenIsStageUnlocked(ResIndex + 1) then
                 -- We wait a bit, but not too much!, so it's not an abrupt game over

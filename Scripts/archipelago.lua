@@ -11,12 +11,13 @@ local message_format = APCli.RenderFormat.TEXT
 
 ---@type APClient
 ap = nil
-
+---@type table
 GameOptions = nil
 slotData = nil
 isGameCompleted = false
 itemList = {}
 checkedLocations = {}
+LocationsToCheck = {}
 server = nil
 slot = nil
 password = nil
@@ -25,6 +26,7 @@ ZenStoryByAreas = false
 EffectModeEnabled = false
 ExcludedModes = {}
 RanksanityEnabled = false
+LastStage = 0
 
 local UnlockedZenLevels = MakeSet(26)
 local UnlockedEffectLevels = MakeSet(16)
@@ -49,13 +51,45 @@ function APZenIsStageUnlocked(stageIndex)
     return UnlockedZenLevels[stageIndex]
 end
 
-function APCheckRank(Score, Stage, Difficulty)
+---comment
+---@param Score any
+---@param Stage any
+---@param Difficulty any
+---@param IsEffect? boolean
+function APCheckRank(Score, Stage, Difficulty, IsEffect)
     -- Compare score to maybe a row of tables with rank info for the stage
     -- for _, ReqScore in ipairs(RankData[Stage]) do
     -- Compare and send checks
     -- Stop and return  when we're going lower than the current ReqScore
     -- end
-    print(RequestRank(Score, Stage, Difficulty))
+    if ap == nil then return end
+    CurrentRank = RequestRank(Score, Stage, Difficulty)
+    if IsEffect == nil or not IsEffect then StageName = ZenLevels[Stage] else StageName = EffectLevels[Stage] end
+    for _, value in ipairs(CurrentRank) do
+        item_name = string.format("%s: %s Rank", StageName, value)
+        print(item_name)
+        item_id = ap:get_location_id(item_name)
+        print(tostring(item_id))
+        if item_id ~= nil then
+            SendLocation(item_id)
+        end
+    end
+
+    --print(CurrentRank)
+end
+
+function APClearStage(Stage, IsEffect)
+    if IsEffect == nil or not IsEffect then
+        StageName = ZenLevels[Stage]
+        item_name = string.format("%s Stage Cleared", StageName)
+    else
+        StageName = EffectLevels[Stage]
+        item_name = string.format("%s Mode Cleared", StageName)
+    end
+    print(item_name)
+    item_id = ap:get_location_id(item_name)
+    print(tostring(item_id))
+    if item_id ~= nil then SendLocation(item_id) else PrintToAll("Error! Couldn't send stage clear!") end
 end
 
 function Connect(_server, _slot, _password)
@@ -130,7 +164,11 @@ function Connect(_server, _slot, _password)
     end
 
     function on_location_info(locationInfos)
-        PrintToAll("Locations scouted: " .. table.concat(locationInfos, ", "))
+        for _, info in ipairs(locationInfos) do
+            local itemname = ap:get_item_name(info.item, ap:get_player_game(info.player))
+            local location = ap:get_location_name(info.location, ap:get_player_game(info.player))
+            PrintToAll("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
+        end
     end
 
     function on_location_checked(locations)
@@ -221,16 +259,28 @@ function connectToAp(host, slot, password)
         if ap == nil then
             return true
         end
-        ap:poll()
-        --print("polling")
-
+        xpcall(function()
+            ap:poll()
+            -- AddHint("Polling!", HintType.Info)
+            if #LocationsToCheck > 0 then
+                local ToSend = {}
+                for _, value in ipairs(LocationsToCheck) do
+                    table.insert(ToSend, value)
+                    checkedLocations[value] = true
+                end
+                ap:LocationChecks(ToSend)
+                checkedLocations = {}
+            end
+        end, function()
+            ap:disconnect()
+        end)
         return false
     end)
 end
 
 function disconnect()
     if ap == nil then return end
-    CheckedLocations = {}
+    checkedLocations = {}
     item_list = {}
     ap = nil
     isDeathLink = false
@@ -333,14 +383,14 @@ function ParseItem(item_name)
             return
         end
         print("Received item \"" ..
-        item_name ..
-        "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+            item_name ..
+            "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then
         QueueTrap(item_name)
     else
         print("Received item \"" ..
-        item_name ..
-        "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+            item_name ..
+            "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
@@ -351,4 +401,10 @@ function CheckIfModelIsSkipped(effect_mode)
         end
         return false
     end
+end
+
+function SendLocation(ID)
+    if checkedLocations[ID] then return end
+    print("Attempting to send item " .. ap:get_location_name(ID, ap:get_game()))
+    table.insert(LocationsToCheck, ID)
 end
