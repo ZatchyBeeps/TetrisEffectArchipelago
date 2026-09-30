@@ -198,12 +198,12 @@ RankTables = {
 ---@return table
 function RequestRank(score, level, difficulty)
     LevelTable = RankTables[level]
-    ResultRank = {"E"}
+    ResultRanks = {"E"}
     for rank, score_requirements in pairs(LevelTable) do
-        print("Checking if rank is achievable " .. rank .. " with " .. tostring(score_requirements[difficulty]) .. " against " .. tostring(score))
+        --print("Checking if rank is achievable " .. rank .. " with " .. tostring(score_requirements[difficulty]) .. " against " .. tostring(score))
         if score_requirements[difficulty] < score then
-            table.insert(ResultRank, rank)
+            table.insert(ResultRanks, rank)
         end
     end
-    return ResultRank
+    return ResultRanks
 end

@@ -105,16 +105,14 @@ end
 
 
 function GetGameScore()
-
     ---@type ATPPuzzleManager_C
     manager = FindFirstOf("TPPuzzleManager_C")
-    print(manager:type())
     if manager:IsValid() then
         print("Valid")
-        result = {}
+        local result = {}
         manager:GetScore(false, result)
         for _, value in pairs(result) do
-            print(tostring(value))
+            --print(tostring(value))
             return value
         end
     end
@@ -136,6 +134,7 @@ function QueueTrap(trap_name)
     print("Received a trap but it's not implemented yet")
 end
 
+
 TrapList = {
     ["Lines trap"] = function()
 
@@ -146,3 +145,71 @@ function PerformTrap()
 
 end
 
+-- Use to represent and get a string with the obtained rank like an EScoreRankType enumerator. Yes, B rank is at the end of the enum for some reason
+ScoreRankType = {
+    [0] = "E",
+    [1] = "D",
+    [2] = "C",
+    [3] = "B",
+    [4] = "A",
+    [5] = "S",
+    [6] = "SS"
+}
+
+function GetObtainedRanks(ScoreRankTypeIndex)
+    local ResultRanks = {}
+    for index, rank in pairs(ScoreRankType) do
+        table.insert(ResultRanks, rank)
+        if index >= ScoreRankTypeIndex then return ResultRanks end
+    end
+    return ResultRanks
+end
+
+-- Use to represent and identify the oasis mode played like an EScoreRankType enumerator. Values are
+GameResultType = {
+    --[0] = GameOver
+    [2] = "Sprint",
+    [1] = "Marathon",
+    [3] = "Ultra",
+    [4] = "Victory", --ZenStoryAllClear
+    [5] = "", --OasisClear . Idk what this is
+    [6] = "Area Clear", -- ZenStoryAreaClear . The name says it
+    [7] = "Mood Story", --Unknown
+    [8] = "Mood Synthe", --Unknown
+    [9] = "Countdown",
+    [10] = "Combo",
+    [11] = "All Clear",
+    [13] = "Adventorous", -- Mystery
+    [18] = "Pause Mode", --Unknown
+    [12] = "Target",
+    [14] = "Purify",
+    [15] = "Master",
+    [16] = "Relax Marathon",
+    [17] = "Relax Playlist", --This seems to be all playlists and quick play
+    [19] = "Zone Marathon",
+    [20] = "Classic Score Attack"
+}
+
+GameResultToModeID =
+{
+    [1] = 0,
+    [2] = 3,
+    [3] = 2,
+    [4] = -1,
+    [5] = -1,
+    [6] = -1,
+    [7] = -1,
+    [8] = -1,
+    [9] = 14,
+    [10] = 12,
+    [11] = 11,
+    [13] = 16,
+    [18] = -1,
+    [12] = 13,
+    [14] = 15,
+    [15] = 4,
+    [16] = 6,
+    [17] = 7, --This seems to be all playlists and quick play
+    [19] = 1,
+    [20] = 5
+}

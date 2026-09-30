@@ -33,7 +33,7 @@ local UnlockedEffectLevels = MakeSet(16)
 local UnlockedGroups = MakeSet(10)
 local RequiresVerify = false
 
-function APCheckOasisLevelUnlocked(levelIndex)
+function APOasisIsLevelUnlocked(levelIndex)
     if not UnlockedEffectLevels[levelIndex] then
         return true
     end
@@ -42,7 +42,7 @@ end
 
 function APZenIsAreaUnlocked(areaIndex)
     -- Change this later with actual checking
-    if areaIndex == 2 then return true end
+    if not UnlockedGroups[areaIndex] then return true end
     return false
 end
 
@@ -52,29 +52,38 @@ function APZenIsStageUnlocked(stageIndex)
 end
 
 ---comment
----@param Score any
----@param Stage any
----@param Difficulty any
----@param IsEffect? boolean
+---@param Score integer Either score obtained or a ScoreRankType value
+---@param Stage integer Zen stage or GameResultType value
+---@param Difficulty? integer What difficulty is the player on. Can be nil if trying to check out from Effect mode
+---@param IsEffect? boolean Are we on effect mode?
 function APCheckRank(Score, Stage, Difficulty, IsEffect)
-    -- Compare score to maybe a row of tables with rank info for the stage
-    -- for _, ReqScore in ipairs(RankData[Stage]) do
-    -- Compare and send checks
-    -- Stop and return  when we're going lower than the current ReqScore
-    -- end
     if ap == nil then return end
-    CurrentRank = RequestRank(Score, Stage, Difficulty)
-    if IsEffect == nil or not IsEffect then StageName = ZenLevels[Stage] else StageName = EffectLevels[Stage] end
-    for _, value in ipairs(CurrentRank) do
-        item_name = string.format("%s: %s Rank", StageName, value)
-        print(item_name)
-        item_id = ap:get_location_id(item_name)
-        print(tostring(item_id))
-        if item_id ~= nil then
-            SendLocation(item_id)
+    if IsEffect == nil or not IsEffect then
+        local CurrentRank = RequestRank(Score, Stage, Difficulty)
+        local StageName = ZenLevels[Stage]
+        for _, value in ipairs(CurrentRank) do
+            local item_name = string.format("%s: %s Rank", StageName, value)
+            --print(item_name)
+            local item_id = ap:get_location_id(item_name)
+            --print(tostring(item_id))
+            if item_id ~= nil then
+                SendLocation(item_id)
+            else print("Attempted to send location but it was not found. Item: " .. item_name)
+            end
+        end
+    else
+        StageName = EffectLevels[GameResultToModeID[Stage]]
+        for _, value in ipairs(GetObtainedRanks(Score)) do
+            local item_name = string.format("%s: %s Rank", StageName, value)
+            --print(item_name)
+            local item_id = ap:get_location_id(item_name)
+            --print(tostring(item_id))
+            if item_id ~= nil then
+                SendLocation(item_id)
+            else print("Attempted to send location but it was not found. Item: " .. item_name)
+            end
         end
     end
-
     --print(CurrentRank)
 end
 
@@ -83,7 +92,7 @@ function APClearStage(Stage, IsEffect)
         StageName = ZenLevels[Stage]
         item_name = string.format("%s Stage Cleared", StageName)
     else
-        StageName = EffectLevels[Stage]
+        StageName = EffectLevels[GameResultToModeID[Stage]]
         item_name = string.format("%s Mode Cleared", StageName)
     end
     print(item_name)
@@ -172,8 +181,8 @@ function Connect(_server, _slot, _password)
     end
 
     function on_location_checked(locations)
-        PrintToAll("Locations checked:" .. table.concat(locations, ", "))
-        print("Checked locations: " .. table.concat(ap.checked_locations, ", "))
+        --PrintToAll("Locations checked:" .. table.concat(locations, ", "))
+        --print("Checked locations: " .. table.concat(ap.checked_locations, ", "))
         for _, LocationID in ipairs(locations) do
             CheckLocation(LocationID)
         end
@@ -265,11 +274,12 @@ function connectToAp(host, slot, password)
             if #LocationsToCheck > 0 then
                 local ToSend = {}
                 for _, value in ipairs(LocationsToCheck) do
+                    print("Sending location id " .. tostring(value))
                     table.insert(ToSend, value)
                     checkedLocations[value] = true
                 end
                 ap:LocationChecks(ToSend)
-                checkedLocations = {}
+                LocationsToCheck = {}
             end
         end, function()
             ap:disconnect()
@@ -286,6 +296,15 @@ function disconnect()
     isDeathLink = false
     collectgarbage("collect")
     PrintToAll("Disconnected from archipelago")
+end
+
+function debug_GiveAll()
+    for key, _ in pairs(UnlockedZenLevels) do
+        UnlockedZenLevels[key] = true
+    end
+    for key, _ in pairs(UnlockedEffectLevels) do
+        UnlockedEffectLevels[key] = true
+    end
 end
 
 ZenLevelItems = {

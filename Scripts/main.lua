@@ -24,6 +24,7 @@ function HookFunctions()
         "/Game/BluePrints/Menu/Oasis/Widget/Menu_OasisSelectPlayModeVScroll_Widget.Menu_OasisSelectPlayModeVScroll_Widget_C:CreateList",
         function(self)
             OnOasisMenuOpen()
+            OnEffectMode = true
             local widget = self:get()
             --print(self:type())
             --print(widget:type())
@@ -33,7 +34,7 @@ function HookFunctions()
                 local BList = widget.ScrollList.PanelList                                -- The list is already ordered the same way as in the item table
                 if BList:IsValid() then
                     BList:ForEach(function(index, elem)
-                        if APCheckOasisLevelUnlocked(index-1) then
+                        if APOasisIsLevelUnlocked(index-1) then
                             elem:get():SetIsEnabled(false)
                             elem:get().IsInitialize = false
                         else
@@ -111,7 +112,7 @@ function HookFunctions()
                 ExecuteWithDelay(50, function()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
-                    ZenStoryManager:ResetAreaPosition(2)
+                    ZenStoryManager:ResetAreaPosition(4)
                 end)
             end)
         end)
@@ -120,15 +121,12 @@ function HookFunctions()
     -- This is maybe not the best method to hook to for when the stage ends, but it's the only one I could reliably use and it does the job well
     RegisterHook("/Game/BluePrints/Game/Interlude/TPInterludeBG.TPInterludeBG_C:SetupMesh", function(self)
         --print("Stage has ended")
+        if ap == nil or OnEffectMode then return end
+        
         local ae = {}
 
 
         ExecuteInGameThread(function()
-            -- Handle level clear location send here
-
-
-            -- The following prevents the player from continuing if the next stage is not unlocked.
-            -- To-do: prevent this from running if we are on effect mode (specifically the Playlist mode which uses the stage chenging tube thing, which is what this is hooked to)
             local StageIndex = {}
             local ResIndex
 
@@ -162,9 +160,14 @@ function HookFunctions()
         end)
     end)
 
-    -- RegisterHook("PauseResultManager_C:SetResultRank", function(self)
-    -- self:get().ResultScoreRank
-    --end)
+    RegisterHook("/Game/BluePrints/Menu/Result/Actor/ActorResultScore.ActorResultScore_C:OnShowRank", function(self)
+        ---@type AActorResultScore_C
+        ResultActor = self:get()
+        ObtainedRank = ResultActor.RankType
+        GameMode = ResultActor.GameResultType
+        APCheckRank(ObtainedRank, GameMode, nil, true)
+        APClearStage(GameMode, true)
+    end)
 
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
         ---This function is called everytime a mino is placed in the board (either by hard or soft drop)
@@ -177,6 +180,7 @@ function HookFunctions()
         ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
         ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
         function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
+            if OnEffectMode then return end
             if CurrentStage == -1 then
                 local StageIndex = {}
 
@@ -207,6 +211,7 @@ function HookFunctions()
     -- Starts the ConnectionHelper widget
     RegisterHook("/Game/BluePrints/Menu/MenuTop/Actor/Actor_Menu_Top.Actor_Menu_Top_C:InitializedWidget", function(self)
         print("Triggered game start")
+        OnEffectMode = false
         ExecuteInGameThread(function()
             modHelper = FindFirstOf("ModActor_C")
             print(modHelper:type())
@@ -234,16 +239,7 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-    ExecuteInGameThread(function()
-        modHelper = FindFirstOf("ModActor_C")
-        if modHelper:IsValid() then
-            print("Mod helper hooked and loaded")
-            print(modHelper:type())
-            modHelper:CreateAPMenu()
-        else
-            print("Error getting mod helper! Some functions won't work")
-        end
-    end)
+    debug_GiveAll()
 end)
 
 
