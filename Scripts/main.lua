@@ -165,8 +165,14 @@ function HookFunctions()
         ResultActor = self:get()
         ObtainedRank = ResultActor.RankType
         GameMode = ResultActor.GameResultType
+        if GameMode == 6 then
+            APSendAreaRankChecks(ObtainedRank, StageIndexToAreaIndex(CurrentStage))
+            return
+        end
         APCheckRank(ObtainedRank, GameMode, nil, true)
-        APClearStage(GameMode, true)
+        if ObtainedRank >= 2 then -- The player must get at least a C rank to clear the mode
+            APClearStage(GameMode, true)
+        end
     end)
 
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",

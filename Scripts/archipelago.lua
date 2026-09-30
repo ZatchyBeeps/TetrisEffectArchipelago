@@ -72,7 +72,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             end
         end
     else
-        StageName = EffectLevels[GameResultToModeID[Stage]]
+        local StageName = EffectLevels[GameResultToModeID[Stage]]
         for _, value in ipairs(GetObtainedRanks(Score)) do
             local item_name = string.format("%s: %s Rank", StageName, value)
             --print(item_name)
@@ -85,6 +85,19 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
         end
     end
     --print(CurrentRank)
+end
+
+function APSendAreaRankChecks(MaxRank, Area)
+    for _, value in ipairs(GetObtainedRanks(MaxRank)) do
+            local item_name = string.format("Area %s: %s Rank", Area, value)
+            --print(item_name)
+            local item_id = ap:get_location_id(item_name)
+            --print(tostring(item_id))
+            if item_id ~= nil then
+                SendLocation(item_id)
+            else print("Attempted to send location but it was not found. Item: " .. item_name)
+        end
+    end
 end
 
 function APClearStage(Stage, IsEffect)

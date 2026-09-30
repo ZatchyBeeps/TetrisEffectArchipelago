@@ -118,6 +118,18 @@ function GetGameScore()
     end
 end
 
+function StageIndexToAreaIndex(StageNum)
+    if StageNum >= 0 and StageNum < 3 then return 1
+    elseif StageNum >= 3 and StageNum < 7 then return 2
+    elseif StageNum >= 7 and StageNum < 11 then return 3
+    elseif StageNum >= 11 and StageNum < 16 then return 4
+    elseif StageNum >= 16 and StageNum < 21 then return 5
+    elseif StageNum >= 21 and StageNum < 26 then return 6
+    elseif StageNum >= 26 then return 7
+    end
+    return nil
+end
+
 function QueueTrap(trap_name)
     if trap_name == "Lines Trap" then
         --Implement lines trap
