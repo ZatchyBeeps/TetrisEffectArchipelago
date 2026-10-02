@@ -199,6 +199,7 @@ function HookFunctions()
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, 3)
+            APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
         end)
 
 
@@ -245,7 +246,7 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-    debug_GiveAll()
+    --debug_GiveAll()
 end)
 
 

@@ -49,7 +49,7 @@ function APClient:get_game() end
 
 ---Get name of location from ID.
 ---@param code integer ID of the location
----@param game string? game the location ID is from; use nil for own location
+---@param game string game the location ID is from; use nil for own location that is not true anymore apparently
 ---@return string name of the location
 function APClient:get_location_name(code, game) end
 

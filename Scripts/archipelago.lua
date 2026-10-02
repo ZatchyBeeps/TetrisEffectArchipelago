@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 local APCli = require("lua-apclientpp")
 
 require("utils")
@@ -33,6 +34,12 @@ local UnlockedEffectLevels = MakeSet(16)
 local UnlockedGroups = MakeSet(10)
 local RequiresVerify = false
 
+local TSpinNum = 0
+local BackToBackNum = 0
+local BackToBackRen = 0
+local TetrisNum = 0
+
+
 function APOasisIsLevelUnlocked(levelIndex)
     if not UnlockedEffectLevels[levelIndex] then
         return true
@@ -41,20 +48,19 @@ function APOasisIsLevelUnlocked(levelIndex)
 end
 
 function APZenIsAreaUnlocked(areaIndex)
-    -- Change this later with actual checking
     if not UnlockedGroups[areaIndex] then return true end
     return false
 end
 
 function APZenIsStageUnlocked(stageIndex)
-    -- Change this later with actual checking
     return UnlockedZenLevels[stageIndex]
 end
 
----comment
+---Sends all rank locations from the given Stage based on the score given and the game's current difficulty.
+---Alternatively, it sends rank locations from the effect mode index given as Stage, based on a given rank value on Score if IsEffect is set to true
 ---@param Score integer Either score obtained or a ScoreRankType value
 ---@param Stage integer Zen stage or GameResultType value
----@param Difficulty? integer What difficulty is the player on. Can be nil if trying to check out from Effect mode
+---@param Difficulty integer What difficulty is the player on. Ignored if trying to check out from Effect mode
 ---@param IsEffect? boolean Are we on effect mode?
 function APCheckRank(Score, Stage, Difficulty, IsEffect)
     if ap == nil then return end
@@ -63,9 +69,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
         local StageName = ZenLevels[Stage]
         for _, value in ipairs(CurrentRank) do
             local item_name = string.format("%s: %s Rank", StageName, value)
-            --print(item_name)
             local item_id = ap:get_location_id(item_name)
-            --print(tostring(item_id))
             if item_id ~= nil then
                 SendLocation(item_id)
             else print("Attempted to send location but it was not found. Item: " .. item_name)
@@ -75,9 +79,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
         local StageName = EffectLevels[GameResultToModeID[Stage]]
         for _, value in ipairs(GetObtainedRanks(Score)) do
             local item_name = string.format("%s: %s Rank", StageName, value)
-            --print(item_name)
             local item_id = ap:get_location_id(item_name)
-            --print(tostring(item_id))
             if item_id ~= nil then
                 SendLocation(item_id)
             else print("Attempted to send location but it was not found. Item: " .. item_name)
@@ -108,10 +110,44 @@ function APClearStage(Stage, IsEffect)
         StageName = EffectLevels[GameResultToModeID[Stage]]
         item_name = string.format("%s Mode Cleared", StageName)
     end
-    print(item_name)
     item_id = ap:get_location_id(item_name)
-    print(tostring(item_id))
     if item_id ~= nil then SendLocation(item_id) else PrintToAll("Error! Couldn't send stage clear!") end
+end
+
+function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear)
+    if LinesCleared == 4 then TetrisNum = TetrisNum + 1 end
+    if TSpinType ~= 0 then TSpinNum = TSpinNum + 1 end
+    if ComboAmount == 3 then SendNext(ap:get_location_id("Made an 8 line combo 1 times")) end
+    if WasB2B then BackToBackNum = BackToBackNum + 1 end
+    if WasAllClear then SendNext(ap:get_location_id("Made 1 all clear")) end
+    if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
+    if TSpinType == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
+    
+    -- This ones don't get sent as the method we use doesn't send the ammount of lines cleared on zone
+    if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
+    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodetris"))
+    elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
+    elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
+    elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
+    elseif LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris"))
+    end
+
+    if TetrisNum >= 15 then
+        SendNext(ap:get_location_id("Made 15 Tetris line clears"))
+        TetrisNum = 0
+    end
+    if TSpinNum >= 10 then
+        SendNext(ap:get_location_id("Made 10 T-Spins"))
+        TSpinNum = 0
+    end
+    if BackToBackNum >= 10 then
+        SendNext(ap:get_location_id("Made 10 back-to-backs"))
+        BackToBackNum = 0
+    end
+    if BackToBackRen >= 4 then
+        SendNext(ap:get_location_id("Made a 4-combo back-to-back 1 times"))
+        BackToBackRen = 0
+    end
 end
 
 function Connect(_server, _slot, _password)
@@ -189,7 +225,7 @@ function Connect(_server, _slot, _password)
         for _, info in ipairs(locationInfos) do
             local itemname = ap:get_item_name(info.item, ap:get_player_game(info.player))
             local location = ap:get_location_name(info.location, ap:get_player_game(info.player))
-            PrintToAll("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
+            print("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
         end
     end
 
@@ -203,8 +239,9 @@ function Connect(_server, _slot, _password)
 
     function CheckLocation(location_id)
         local name = ap:get_location_name(location_id, nil)
+        print(name)
         if name ~= nil then
-            table.insert(checkedLocations, name)
+            checkedLocations[location_id] = true
         end
     end
 
@@ -414,18 +451,17 @@ function ParseItem(item_name)
             print("Received and unlocked mode: " .. item_name)
             return
         end
-        print("Received item \"" ..
-            item_name ..
-            "\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        print("Received item \"" ..item_name .."\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then
         QueueTrap(item_name)
     else
-        print("Received item \"" ..
-            item_name ..
-            "\" which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+        print("Received item '" .. item_name .. "' which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
+---Checks if the given mode is excluded in the multiworld
+---@param effect_mode string
+---@return boolean
 function CheckIfModelIsSkipped(effect_mode)
     for index, value in ipairs(ExcludedModes) do
         if string.find(effect_mode, value) ~= nil then
@@ -435,8 +471,27 @@ function CheckIfModelIsSkipped(effect_mode)
     end
 end
 
+---Tells the multiworld to send the given location id
+---@param ID integer
 function SendLocation(ID)
-    if checkedLocations[ID] then return end
+    if checkedLocations[ID] or ap == nil then return end
     print("Attempting to send item " .. ap:get_location_name(ID, ap:get_game()))
     table.insert(LocationsToCheck, ID)
+end
+
+---Sends the next location available from the given location ID as a base. Intended for the trick locations
+---@param BaseLocationID integer
+function SendNext(BaseLocationID)
+    if BaseLocationID == nil then
+        print("We got a null value for send next!")
+        return
+    end
+    for i = 0, 49, 1 do
+        if checkedLocations[BaseLocationID + i] == nil or not checkedLocations[BaseLocationID + i] then
+            SendLocation(BaseLocationID + i)
+            break
+        end
+    end
+
+    
 end
