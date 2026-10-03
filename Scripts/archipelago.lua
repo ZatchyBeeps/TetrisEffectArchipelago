@@ -23,6 +23,7 @@ server = nil
 slot = nil
 password = nil
 isDeathLink = false
+DeathLinkType = 0
 ZenStoryByAreas = false
 EffectModeEnabled = false
 ExcludedModes = {}
@@ -153,6 +154,13 @@ function APSendZoneChecks(LinesCleared)
     end
 end
 
+function APSendDeathLink()
+    if ap ~= nil and isDeathLink then
+        PrintToAll("You topped out! Sending death link...")
+        ap:Bounce({ cause = "", source = slot, time = os.time(os.date("!*t")) }, nil, nil, {"DeathLink"})
+    end
+end
+
 function Connect(_server, _slot, _password)
     server = _server
     slot = _slot
@@ -194,6 +202,7 @@ function Connect(_server, _slot, _password)
         print("Enabling DeathLink")
         if GameOptions.death_link ~= 3 then
             isDeathLink = true
+            DeathLinkType = GameOptions.death_link
             ap:ConnectUpdate(nil, { "Lua-APClientPP", "DeathLink" })
             PrintToAll("DeathLink has been enabled")
         end
@@ -265,6 +274,15 @@ function Connect(_server, _slot, _password)
         print("Bounced:")
         for k, v in pairs(bounce) do
             print(k .. ": " .. tostring(v))
+        end
+        if bounce.tags and isDeathLink then
+            for _, tag in ipairs(bounce.tags) do
+                if tag == "DeathLink" then
+                    local cause = #bounce.data.cause > 0 and bounce.data.cause or (bounce.data.source .. " has died...")
+                    PrintToAll(cause)
+                    DeathLinkPlayer()
+                end
+            end
         end
     end
 
@@ -455,15 +473,15 @@ function ParseItem(item_name)
             print("Received and unlocked mode: " .. item_name)
             return
         end
-        if item_name == "Zone Unlock" then
+        if item_name == "Zone Unlock" and not ZoneUnlocked then
             ZoneUnlocked = true
             PrintToAll("You got your Zone!")
         end
-        print("Received item \"" ..item_name .."\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        print("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then
         QueueTrap(item_name)
     else
-        print("Received item '" .. item_name .. "' which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+        print("Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
@@ -500,6 +518,31 @@ function SendNext(BaseLocationID)
             break
         end
     end
+end
 
-    
+function DeathLinkPlayer()
+    print("Trying to deathlink player")
+    isDeathLink = false
+    if DeathLinkType == 0 then
+        ---@type ATPGamePlayerPawn_C
+        local Mana = FindFirstOf("TPGamePlayManager_C")
+        if Mana ~= nil and Mana:IsValid() then
+            Mana:GameOver(true, false)
+        end
+    elseif DeathLinkType == 1 then
+        ExecuteWithDelay(100, function ()
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then return end
+            for i = 1, 10, 1 do
+                PManager:AddGarbageLine({})
+            end
+        end)
+    elseif DeathLinkType == 2 then
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end -- I guess to keep it consistent, we won't queue the death link if on menus
+        QueuedDeathLink = true
+    end
+    ExecuteWithDelay(15000, function ()
+        isDeathLink = true
+    end)
 end

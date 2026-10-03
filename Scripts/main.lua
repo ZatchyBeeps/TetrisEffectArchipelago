@@ -234,6 +234,10 @@ function HookFunctions()
         end)
     end)
 
+    RegisterHook("/Game/BluePrints/Game/TPGamePlayManager.TPGamePlayManager_C:CreateGameResult", function (self, GameOver)
+        if GameOver:get() then APSendDeathLink() end
+    end)
+
     -- Because the blueprint mod is loaded later, we wait for it to get loaded or UE4SS will not find it. Since we are on a single consistent Streamed Level, we don't have to worry about hooking things multiple times
     ExecuteWithDelay(2000, function()
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnConnect",

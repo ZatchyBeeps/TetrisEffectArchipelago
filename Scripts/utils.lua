@@ -49,6 +49,7 @@ EffectLevels = {
 }
 
 local QueuedTraps = {}
+QueuedDeathLink = false
 
 
 ---@param size integer
@@ -233,6 +234,16 @@ TrapList = {
 }
 
 function PerformTrap()
+    if QueuedDeathLink then
+        QueuedDeathLink = false
+        ExecuteWithDelay(100, function ()
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then return end
+            for i = 1, 6, 1 do
+                PManager:AddGarbageLine({})
+            end
+        end)
+    end
     local TrapNum = #QueuedTraps
     if TrapNum == 0 then return end
     if math.random(0, 4) == 1 then
