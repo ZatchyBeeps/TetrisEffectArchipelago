@@ -48,6 +48,8 @@ EffectLevels = {
     [16] = 'Mystery'
 }
 
+local QueuedTraps = {}
+
 
 ---@param size integer
 ---@param at_start? integer
@@ -131,30 +133,117 @@ function StageIndexToAreaIndex(StageNum)
 end
 
 function QueueTrap(trap_name)
-    if trap_name == "Lines Trap" then
-        --Implement lines trap
-    elseif trap_name == "Giant Mino Trap" then
-
-    elseif trap_name == "Broken Mino Trap" then
-    elseif trap_name == "Zone Trap" then
-    elseif trap_name == "Ghost Piece Trap" then
-    elseif trap_name == "Hold Trap" then
-    elseif trap_name == "Queue Trap" then
-    elseif trap_name == "Speed Trap" then
-
+    if trap_name == "Ghost Piece Trap" then
+        print("Received a trap but it's not implemented yet")
+        return
     end
-    print("Received a trap but it's not implemented yet")
+    table.insert(QueuedTraps, trap_name)
 end
 
-
+---@type {[string]: fun()}
 TrapList = {
-    ["Lines trap"] = function()
-
+    ["Lines Trap"] = function()
+        ExecuteWithDelay(100, function ()
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then return end
+            local RepeatFor = math.random(1, 5)
+            for i = 1, RepeatFor, 1 do
+                PManager:AddGarbageLine({})
+            end
+        end)
+    end,
+    ["Giant Mino Trap"] = function()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:SetNextSpawnXL()
+    end,
+    ["Broken Mino Trap"] = function()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:SetBrokenMinoEnable(true, 5)
+        ExecuteWithDelay(15000, function ()
+            PManager:SetBrokenMinoEnable(false, 0)
+            PrintToAll("The Broken Mino Trap has expired...")
+        end)
+    end,
+    ["Zone Trap"] = function()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:TriggerZenMode() -- Note to self, EnterZenDimension is not the correct method
+    end,
+    ["Hold Trap"] = function ()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:ForbidHold(true)
+        ExecuteWithDelay(30000, function ()
+            PManager:ForbidHold(false)
+            PrintToAll("The Hold Trap has expired...")
+        end)
+    end,
+    ["Swap Trap"] = function ()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:SwapActiveAndHold()
+    end,
+    ["Queue Trap"] = function()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager:SetNextMinoViewCount(0)
+        ExecuteWithDelay(30000, function ()
+            PManager:SetNextMinoViewCount(3)
+            PrintToAll("The Queue Trap has expired...")
+        end)
+    end,
+    ["Speed Trap"] = function()
+        ---@type ATPPuzzleManager_C
+        local PManager = FindFirstOf("TPPuzzleManager_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        local dif = {}
+        local pla = {}
+        local OgSpeed = 1
+        local OgPlaceTime = 1
+        PManager:GetDifficultyLevel(true, dif)
+        PManager:GetExtendedPlacementFreeTime(pla)
+        for _, value in ipairs(dif) do OgSpeed = value end
+        for _, value in ipairs(pla) do OgPlaceTime = value end
+        PManager:SetDifficultyLevel(20, false)
+        PManager:SetExtendedPlacementFreeTime(0.24, false)
+        ExecuteWithDelay(7000, function ()
+            PManager:SetDifficultyLevel(OgSpeed, false)
+            PManager:SetExtendedPlacementFreeTime(OgPlaceTime, false)
+            PrintToAll("The Speed Trap has expired...")
+        end)
+    end,
+        ["Ghost Piece Trap"] = function ()
+        ---@type ATPGamePlayerPawn_C
+        local PManager = FindFirstOf("TPGamePlayerPawn_C")
+        if PManager == nil or not PManager:IsValid() then return end
+        PManager.EnableGhost = false
+        ExecuteWithDelay(30000, function ()
+            PManager.EnableGhost = true
+            PrintToAll("The Ghost Piece Trap has expired...")
+        end)
     end
 }
 
 function PerformTrap()
-
+    local TrapNum = #QueuedTraps
+    if TrapNum == 0 then return end
+    if math.random(0, 4) == 1 then
+        local SelectedTrap = math.random(0, TrapNum)
+        local Trap = TrapList[QueuedTraps[SelectedTrap]]
+        if Trap ~= nil then
+            PrintToAll(string.format("Trap triggered! %s", QueuedTraps[SelectedTrap]))
+            table.remove(QueuedTraps, SelectedTrap)
+            Trap()
+            end
+    end
 end
 
 -- Use to represent and get a string with the obtained rank like an EScoreRankType enumerator. Yes, B rank is at the end of the enum for some reason

@@ -27,6 +27,7 @@ ZenStoryByAreas = false
 EffectModeEnabled = false
 ExcludedModes = {}
 RanksanityEnabled = false
+ZoneUnlocked = true
 LastStage = 0
 
 local UnlockedZenLevels = MakeSet(26)
@@ -200,6 +201,7 @@ function Connect(_server, _slot, _password)
         EffectModeEnabled = GameOptions.is_include_effect
         ExcludedModes = GameOptions.excluded_modes
         RanksanityEnabled = GameOptions.is_ranksanity
+        ZoneUnlocked = GameOptions.is_start_zone
 
         --ParseItemUnlocks()
         print("Done")
@@ -239,7 +241,6 @@ function Connect(_server, _slot, _password)
 
     function CheckLocation(location_id)
         local name = ap:get_location_name(location_id, nil)
-        print(name)
         if name ~= nil then
             checkedLocations[location_id] = true
         end
@@ -425,6 +426,7 @@ AreaItems = {
 ---Validates the item name given and makes it available to the player
 ---@param item_name string
 function ParseItem(item_name)
+
     if string.find(item_name, "Unlock") ~= nil then
         if ZenStoryByAreas then
             if AreaItems[item_name] ~= nil then
@@ -450,6 +452,10 @@ function ParseItem(item_name)
             UnlockedEffectLevels[EffectLevelItems[item_name]] = true
             print("Received and unlocked mode: " .. item_name)
             return
+        end
+        if item_name == "Zone Unlock" then
+            ZoneUnlocked = true
+            PrintToAll("You got your Zone!")
         end
         print("Received item \"" ..item_name .."\" but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then

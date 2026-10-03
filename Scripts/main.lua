@@ -200,8 +200,14 @@ function HookFunctions()
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, 3)
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
+            PerformTrap()
         end)
 
+
+    RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:FinishZenMode",
+        function(self, ErasedLineNum)
+            print(tostring(ErasedLineNum:get()))
+        end)
 
     -- I once had a hook for the results screen which would have been helpful to get the area score and send checks but either:
     -- A) I call the result manager to calculate the rank and get it on the hook above, to send checks mid game; or,
@@ -246,17 +252,35 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
+    --@type ATPPuzzleManager_C
+    ---@type ATPStageManager_C
+    local thing = FindFirstOf("TPStageManager_C")
+    local res = {}
+    local yeah = thing.ModeBehavior:GetFName():ToString()
+    print(yeah)
+    --print(tostring(yeah.Difficulty))
+    --thing:SetExtendedPlacementFreeTime(0.24, false)
+    --print(tostring(thing.HoldForbad = false))
+    --TPModeBehaviorZenStroy_C /Game/Levels/GamePersistant.GamePersistant:PersistentLevel.TPStageManager_C_2147481864.NODE_AddTPModeBehaviorZenStroy-26
+    for index, value in pairs(res) do
+        print(tostring(value))
+    end
     --debug_GiveAll()
 end)
 
+--Get difficulty
+--FindFirstOf("TPStageManager_C").ModeBehavior.Difficulty
+
 
 -- For later funnies
--- TPPuzzleManager_C:SetBrokenMinoEnable(Enable, MixingRate)
--- TPPuzzleManager_C:ForbidHold(Yes)
 -- TPPuzzleManager_C:AddScore(Add)
 -- TPPuzzleManager_C:InvertFieldH()
--- TPPuzzleManager_C:AddGarbageLine(EmptyGridX)
--- TPPuzzleManager_C:TriggerZenMode()
+
+-- To change if user can use the zone
+--TPPuzzleManager_C:EnableZenLevel(false)
+
+--Maybe an item to prevent hold? 
+--TPPuzzleManager_C.HoldForbad = false
 
 
 
