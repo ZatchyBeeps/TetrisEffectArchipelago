@@ -206,7 +206,7 @@ function HookFunctions()
 
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:FinishZenMode",
         function(self, ErasedLineNum)
-            print(tostring(ErasedLineNum:get()))
+            APSendZoneChecks(ErasedLineNum:get())
         end)
 
     -- I once had a hook for the results screen which would have been helpful to get the area score and send checks but either:

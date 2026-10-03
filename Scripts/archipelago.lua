@@ -124,14 +124,6 @@ function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllCle
     if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
     if TSpinType == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
     
-    -- This ones don't get sent as the method we use doesn't send the ammount of lines cleared on zone
-    if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
-    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodetris"))
-    elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
-    elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
-    elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
-    elseif LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris"))
-    end
 
     if TetrisNum >= 15 then
         SendNext(ap:get_location_id("Made 15 Tetris line clears"))
@@ -148,6 +140,16 @@ function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllCle
     if BackToBackRen >= 4 then
         SendNext(ap:get_location_id("Made a 4-combo back-to-back 1 times"))
         BackToBackRen = 0
+    end
+end
+
+function APSendZoneChecks(LinesCleared)
+    if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
+    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodetris"))
+    elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
+    elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
+    elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
+    elseif LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris"))
     end
 end
 
