@@ -283,6 +283,8 @@ RegisterKeyBind(Key.F7, function()
     local res = {}
     local yeah = thing.ModeBehavior:GetFName():ToString()
     print(yeah)
+    local garbage = TrapList["Broken Mino Trap"]
+    garbage()
     --print(tostring(yeah.Difficulty))
     --thing:SetExtendedPlacementFreeTime(0.24, false)
     --print(tostring(thing.HoldForbad = false))

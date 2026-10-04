@@ -525,10 +525,10 @@ function DeathLinkPlayer()
     print("Trying to deathlink player")
     isDeathLink = false
     if DeathLinkType == 0 then
-        ---@type ATPGamePlayerPawn_C
-        local Mana = FindFirstOf("TPGamePlayManager_C")
+        ---@type ATPPuzzleManager_C
+        local Mana = FindFirstOf("TPPuzzleManager_C")
         if Mana ~= nil and Mana:IsValid() then
-            Mana:GameOver(true, false)
+            Mana:SetGameOver({})
         end
     elseif DeathLinkType == 1 then
         ExecuteWithDelay(100, function ()

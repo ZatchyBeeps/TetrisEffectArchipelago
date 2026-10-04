@@ -162,7 +162,7 @@ TrapList = {
         ---@type ATPPuzzleManager_C
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
-        PManager:SetBrokenMinoEnable(true, 5)
+        PManager:SetBrokenMinoEnable(true, math.random())
         ExecuteWithDelay(15000, function ()
             PManager:SetBrokenMinoEnable(false, 0)
             PrintToAll("The Broken Mino Trap has expired...")
@@ -191,12 +191,12 @@ TrapList = {
         PManager:SwapActiveAndHold()
     end,
     ["Queue Trap"] = function()
-        ---@type ATPPuzzleManager_C
-        local PManager = FindFirstOf("TPPuzzleManager_C")
+        ---@type ATPGamePlayManager_C
+        local PManager = FindFirstOf("TPGamePlayManager_C")
         if PManager == nil or not PManager:IsValid() then return end
-        PManager:SetNextMinoViewCount(0)
+        PManager.GamePlayerPawns[1].ForceInvisibleNextMino = true
         ExecuteWithDelay(30000, function ()
-            PManager:SetNextMinoViewCount(3)
+            PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false
             PrintToAll("The Queue Trap has expired...")
         end)
     end,
@@ -204,14 +204,8 @@ TrapList = {
         ---@type ATPPuzzleManager_C
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
-        local dif = {}
-        local pla = {}
-        local OgSpeed = 1
-        local OgPlaceTime = 1
-        PManager:GetDifficultyLevel(true, dif)
-        PManager:GetExtendedPlacementFreeTime(pla)
-        for _, value in ipairs(dif) do OgSpeed = value end
-        for _, value in ipairs(pla) do OgPlaceTime = value end
+        local OgSpeed = PManager.DifficultyLevel
+        local OgPlaceTime = PManager.ExtendedPlacementFreeTime
         PManager:SetDifficultyLevel(20, false)
         PManager:SetExtendedPlacementFreeTime(0.24, false)
         ExecuteWithDelay(7000, function ()
@@ -221,12 +215,12 @@ TrapList = {
         end)
     end,
         ["Ghost Piece Trap"] = function ()
-        ---@type ATPGamePlayerPawn_C
-        local PManager = FindFirstOf("TPGamePlayerPawn_C")
+        ---@type ATPGamePlayManager_C
+        local PManager = FindFirstOf("TPGamePlayManager_C")
         if PManager == nil or not PManager:IsValid() then return end
-        PManager.EnableGhost = false
+        PManager.GamePlayerPawns[1].ForceInvisibleGhost = true
         ExecuteWithDelay(30000, function ()
-            PManager.EnableGhost = true
+            PManager.GamePlayerPawns[1].ForceInvisibleGhost = false
             PrintToAll("The Ghost Piece Trap has expired...")
         end)
     end
