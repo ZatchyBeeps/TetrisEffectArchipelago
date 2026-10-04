@@ -476,6 +476,7 @@ function ParseItem(item_name)
         if item_name == "Zone Unlock" and not ZoneUnlocked then
             ZoneUnlocked = true
             PrintToAll("You got your Zone!")
+            LockZone() -- Should enable it back mid game
         end
         print("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil then
@@ -545,4 +546,10 @@ function DeathLinkPlayer()
     ExecuteWithDelay(15000, function ()
         isDeathLink = true
     end)
+end
+
+function LockZone()
+    local PManager = FindFirstOf("TPPuzzleManager_C")
+    if PManager == nil or not PManager:IsValid() then return end
+    PManager:EnableZenLevel(ZoneUnlocked)
 end

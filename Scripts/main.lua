@@ -13,6 +13,8 @@ local AccumulatedScore = 0
 local CurrentStage = 0
 local CurrentDifficulty = 0
 local OnEffectMode = false
+local ShouldRecheckZone = true
+local GameOveredByBlockage = false
 
 
 function HookFunctions()
@@ -193,6 +195,10 @@ function HookFunctions()
         ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
         function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
             if OnEffectMode then return end
+            if ShouldRecheckZone then
+                LockZone()
+                ShouldRecheckZone = false
+            end
             if CurrentStage == -1 then
                 local StageIndex = {}
                 FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
@@ -205,6 +211,7 @@ function HookFunctions()
                     CurrentDifficulty = StageManager.ModeBehavior.Difficulty
                 end
                 print("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
+                
             end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
@@ -249,7 +256,7 @@ function HookFunctions()
 
     -- On game over
     RegisterHook("/Game/BluePrints/Game/TPGamePlayManager.TPGamePlayManager_C:CreateGameResult", function (self, GameOver)
-        if GameOver:get() then APSendDeathLink() end
+        if GameOver:get() then APSendDeathLink() ShouldRecheckZone = true end
     end)
 
     -- Because the blueprint mod is loaded later, we wait for it to get loaded or UE4SS will not find it. Since we are on a single consistent Streamed Level, we don't have to worry about hooking things multiple times

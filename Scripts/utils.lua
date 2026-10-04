@@ -256,6 +256,8 @@ function PerformTrap()
     end
 end
 
+
+
 -- Use to represent and get a string with the obtained rank like an EScoreRankType enumerator. Yes, B rank is at the end of the enum for some reason
 ScoreRankType = {
     [0] = "E",
