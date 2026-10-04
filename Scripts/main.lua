@@ -11,6 +11,7 @@ local firstRun = true
 local CurrentScore = 0
 local AccumulatedScore = 0
 local CurrentStage = 0
+local CurrentDifficulty = 0
 local OnEffectMode = false
 
 
@@ -109,7 +110,7 @@ function HookFunctions()
                     end
                 end)
                 -- Somewhat prevents weird behaviours with the cursor thing being off screen breaking the stage selection until you'd went back to the difficulty select
-                ExecuteWithDelay(50, function()
+                ExecuteWithDelay(25, function()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
                     ZenStoryManager:ResetAreaPosition(4)
@@ -160,7 +161,10 @@ function HookFunctions()
         end)
     end)
 
-    RegisterHook("/Game/BluePrints/Menu/Result/Actor/ActorResultScore.ActorResultScore_C:OnShowRank", function(self)
+
+    -- On area ending or oasis mode completed
+    RegisterHook("/Game/BluePrints/Menu/Result/Actor/ActorResultScore.ActorResultScore_C:OnShowRank",
+    function(self)
         ---@type AActorResultScore_C
         ResultActor = self:get()
         ObtainedRank = ResultActor.RankType
@@ -175,6 +179,8 @@ function HookFunctions()
         end
     end)
 
+
+    -- On drop any tetrimino
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
         ---This function is called everytime a mino is placed in the board (either by hard or soft drop)
         ---@param self UObject
@@ -189,21 +195,27 @@ function HookFunctions()
             if OnEffectMode then return end
             if CurrentStage == -1 then
                 local StageIndex = {}
-
                 FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
                 for _, value in pairs(StageIndex) do
                     CurrentStage = value
                 end
+                ---@type ATPStageManager_C
+                local StageManager = FindFirstOf("TPStageManager_C")
+                if StageManager ~= nil then
+                    CurrentDifficulty = StageManager.ModeBehavior.Difficulty
+                end
+                print("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
             end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
-            APCheckRank(CurrentScore, CurrentStage, 3)
+            APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
             PerformTrap()
         end)
 
-
+    
+    -- On zone ended
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:FinishZenMode",
         function(self, ErasedLineNum)
             APSendZoneChecks(ErasedLineNum:get())
@@ -220,20 +232,22 @@ function HookFunctions()
 
     --TPPuzzleManager_C:CheckB2B
 
-
+    
+    -- On main menu open
     -- Starts the ConnectionHelper widget
     RegisterHook("/Game/BluePrints/Menu/MenuTop/Actor/Actor_Menu_Top.Actor_Menu_Top_C:InitializedWidget", function(self)
         print("Triggered game start")
         OnEffectMode = false
         ExecuteInGameThread(function()
             modHelper = FindFirstOf("ModActor_C")
-            print(modHelper:type())
             if modHelper:IsValid() then
                 modHelper:CreateAPMenu()
             end
         end)
     end)
 
+
+    -- On game over
     RegisterHook("/Game/BluePrints/Game/TPGamePlayManager.TPGamePlayManager_C:CreateGameResult", function (self, GameOver)
         if GameOver:get() then APSendDeathLink() end
     end)
@@ -269,7 +283,7 @@ RegisterKeyBind(Key.F7, function()
     for index, value in pairs(res) do
         print(tostring(value))
     end
-    --debug_GiveAll()
+    debug_GiveAll()
 end)
 
 --Get difficulty

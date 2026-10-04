@@ -111,7 +111,6 @@ function GetGameScore()
     ---@type ATPPuzzleManager_C
     manager = FindFirstOf("TPPuzzleManager_C")
     if manager:IsValid() then
-        print("Valid")
         local result = {}
         manager:GetScore(false, result)
         for _, value in pairs(result) do
