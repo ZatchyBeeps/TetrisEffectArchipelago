@@ -141,6 +141,7 @@ function HookFunctions()
             APClearStage(ResIndex, false)
             --print(tostring(ResIndex))
             if not APZenIsStageUnlocked(ResIndex + 1) then
+                GameOveredByBlockage = true
                 -- We wait a bit, but not too much!, so it's not an abrupt game over
                 ExecuteWithDelay(1500, function()
                     FindFirstOf("TPGamePlayManager_C"):CreateGameResult(true)
@@ -256,7 +257,8 @@ function HookFunctions()
 
     -- On game over
     RegisterHook("/Game/BluePrints/Game/TPGamePlayManager.TPGamePlayManager_C:CreateGameResult", function (self, GameOver)
-        if GameOver:get() then APSendDeathLink() ShouldRecheckZone = true end
+        if GameOver:get() and not GameOveredByBlockage then APSendDeathLink() ShouldRecheckZone = true
+        elseif GameOveredByBlockage then GameOveredByBlockage = false end
     end)
 
     -- Because the blueprint mod is loaded later, we wait for it to get loaded or UE4SS will not find it. Since we are on a single consistent Streamed Level, we don't have to worry about hooking things multiple times
