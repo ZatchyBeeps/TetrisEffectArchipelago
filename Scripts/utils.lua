@@ -50,6 +50,7 @@ EffectLevels = {
 
 local QueuedTraps = {}
 QueuedDeathLink = false
+local TrapActive = false
 
 
 ---@param size integer
@@ -150,6 +151,7 @@ TrapList = {
             for i = 1, RepeatFor, 1 do
                 PManager:AddGarbageLine({})
             end
+            TrapActive = false
         end)
     end,
     ["Giant Mino Trap"] = function()
@@ -157,6 +159,7 @@ TrapList = {
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager:SetNextSpawnXL()
+        TrapActive = false
     end,
     ["Broken Mino Trap"] = function()
         ---@type ATPPuzzleManager_C
@@ -166,6 +169,7 @@ TrapList = {
         ExecuteWithDelay(15000, function ()
             PManager:SetBrokenMinoEnable(false, 0)
             PrintToAll("The Broken Mino Trap has expired...")
+            TrapActive = false
         end)
     end,
     ["Zone Trap"] = function()
@@ -173,6 +177,7 @@ TrapList = {
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager:TriggerZenMode() -- Note to self, EnterZenDimension is not the correct method
+        TrapActive = false
     end,
     ["Hold Trap"] = function ()
         ---@type ATPPuzzleManager_C
@@ -183,12 +188,14 @@ TrapList = {
             PManager:ForbidHold(false)
             PrintToAll("The Hold Trap has expired...")
         end)
+        TrapActive = false
     end,
     ["Swap Trap"] = function ()
         ---@type ATPPuzzleManager_C
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager:SwapActiveAndHold()
+        TrapActive = false
     end,
     ["Queue Trap"] = function()
         ---@type ATPGamePlayManager_C
@@ -198,6 +205,7 @@ TrapList = {
         ExecuteWithDelay(30000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false
             PrintToAll("The Queue Trap has expired...")
+            TrapActive = false
         end)
     end,
     ["Speed Trap"] = function()
@@ -212,6 +220,7 @@ TrapList = {
             PManager:SetDifficultyLevel(OgSpeed, false)
             PManager:SetExtendedPlacementFreeTime(OgPlaceTime, false)
             PrintToAll("The Speed Trap has expired...")
+            TrapActive = false
         end)
     end,
         ["Ghost Piece Trap"] = function ()
@@ -222,6 +231,7 @@ TrapList = {
         ExecuteWithDelay(30000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleGhost = false
             PrintToAll("The Ghost Piece Trap has expired...")
+            TrapActive = false
         end)
     end
 }
@@ -237,15 +247,18 @@ function PerformTrap()
             end
         end)
     end
+    if TrapActive then return end
     local TrapNum = #QueuedTraps
     if TrapNum == 0 then return end
     if math.random(0, 4) == 1 then
         local SelectedTrap = math.random(0, TrapNum)
         local Trap = TrapList[QueuedTraps[SelectedTrap]]
         if Trap ~= nil then
+            TrapActive = true
             PrintToAll(string.format("Trap triggered! %s", QueuedTraps[SelectedTrap]))
             table.remove(QueuedTraps, SelectedTrap)
             Trap()
+            
             end
     end
 end
