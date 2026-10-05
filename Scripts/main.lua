@@ -1,4 +1,4 @@
-print("TEA loaded")
+print("TE:A is loading")
 
 UEHelpers = require("UEHelpers")
 
@@ -8,6 +8,7 @@ local modHelper = nil
 
 local ZenStoryByAreas = false
 local firstRun = true
+local Ready = false
 local CurrentScore = 0
 local AccumulatedScore = 0
 local CurrentStage = 0
@@ -151,8 +152,7 @@ function HookFunctions()
                         ---@type AActorGameOver_C
                         local gameoveractor = FindFirstOf("ActorGameOver_C")
                         if gameoveractor:IsValid() then
-                            gameoveractor.MenuWidget.Continue.Text:SetText(FText(
-                                "RESTART (NEXT STAGE IS LOCKED BY ARCHIPELAGO)")) -- Aparently most text boxes just have text in uppercase, which is like idk 80% of the game? lol
+                            gameoveractor.MenuWidget.Continue.Text:SetText(FText("RESTART (NEXT STAGE IS LOCKED BY ARCHIPELAGO)")) -- Aparently most text boxes just have text in uppercase, which is like idk 80% of the game? lol
                         end
                     end)
                 end)
@@ -244,12 +244,16 @@ function HookFunctions()
     RegisterHook("/Game/BluePrints/Menu/MenuTop/Actor/Actor_Menu_Top.Actor_Menu_Top_C:InitializedWidget", function(self)
         print("Triggered game start")
         OnEffectMode = false
+
         ExecuteInGameThread(function()
             modHelper = FindFirstOf("ModActor_C")
             if modHelper:IsValid() then
                 modHelper:CreateAPMenu()
             end
         end)
+        --ExecuteWithDelay(5000, function ()        -- To-do: Remove the button from the array UserWidget.ButtonBases
+        --    self:get().UserWidget.Multiplay.LocationBoxs = nil
+        --end)
     end)
 
 
@@ -257,6 +261,14 @@ function HookFunctions()
     RegisterHook("/Game/BluePrints/Game/TPGamePlayManager.TPGamePlayManager_C:CreateGameResult", function (self, GameOver)
         if GameOver:get() and not GameOveredByBlockage then APSendDeathLink() ShouldRecheckZone = true
         elseif GameOveredByBlockage then GameOveredByBlockage = false end
+    end)
+
+
+    RegisterHook("/Game/BluePrints/Menu/Option/Actor/ActorMenuOptionGame.ActorMenuOptionGame_C:InitializeWidget", 
+    function (self)
+        ---@type UMenu_OptionGameWidget_C
+        local opt_widget = self:get().UserWidget
+        opt_widget.IndexRowMax = 16
     end)
 
     -- Because the blueprint mod is loaded later, we wait for it to get loaded or UE4SS will not find it. Since we are on a single consistent Streamed Level, we don't have to worry about hooking things multiple times
@@ -273,11 +285,13 @@ function HookFunctions()
                 disconnect()
             end)
     end)
+
+    Ready = true
 end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-    GameGoal()
+    FindFirstOf("Actor_Menu_Top_C").UserWidget.Multiplay.LocationBoxs = nil
 end)
 
 --Get difficulty
@@ -325,7 +339,7 @@ function OnZenMenuOpen()
 end
 
 RegisterInitGameStatePostHook(function(Context)
-    if not firstRun then
+    if not firstRun and not Ready then
         HookFunctions()
         -- Probably gonna get rid of this, as finding the actor itself is more reliable (trying to call modHelper has a low chance to cause crashes for some reason)
         ExecuteWithDelay(1000, function()
@@ -343,7 +357,7 @@ RegisterInitGameStatePostHook(function(Context)
     end
 end)
 
-
+print("TE:A loaded and ready!")
 
 --RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, NewPawn)
 
