@@ -3,6 +3,7 @@ local APCli = require("lua-apclientpp")
 
 require("utils")
 require("ranksanity_utils")
+require("area_ranksanity_utils")
 
 local GameName = "Tetris Effect: Connected"
 local APVersion = { 0, 6, 7 }
@@ -40,6 +41,7 @@ local TSpinNum = 0
 local BackToBackNum = 0
 local BackToBackRen = 0
 local TetrisNum = 0
+local IsFirstConnection = false
 
 
 function APOasisIsLevelUnlocked(levelIndex)
@@ -77,6 +79,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             else print("Attempted to send location but it was not found. Item: " .. item_name)
             end
         end
+
     else
         local StageName = EffectLevels[GameResultToModeID[Stage]]
         for _, value in ipairs(GetObtainedRanks(Score)) do
@@ -91,17 +94,15 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
     --print(CurrentRank)
 end
 
-function APSendAreaRankChecks(MaxRank, Area)
-    for _, value in ipairs(GetObtainedRanks(MaxRank)) do
-            local item_name = string.format("Area %s: %s Rank", Area, value)
-            --print(item_name)
+function APSendAreaRankChecks(Score, Area, Difficulty)
+        for _, Rank in ipairs(RequestAreaRank(Score, Area, Difficulty)) do
+            local item_name = string.format("Area %q: %s Rank", Area, Rank)
             local item_id = ap:get_location_id(item_name)
-            --print(tostring(item_id))
             if item_id ~= nil then
                 SendLocation(item_id)
             else print("Attempted to send location but it was not found. Item: " .. item_name)
+            end
         end
-    end
 end
 
 function APClearStage(Stage, IsEffect)
@@ -186,6 +187,7 @@ function Connect(_server, _slot, _password)
 
     function OnSlotConnect(RSlotData)
         PrintToAll("Slot succesfully connected")
+        IsFirstConnection = true
         --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
         --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
         LocationsMissing = ap.missing_locations
@@ -204,7 +206,7 @@ function Connect(_server, _slot, _password)
             isDeathLink = true
             DeathLinkType = GameOptions.death_link
             ap:ConnectUpdate(nil, { "Lua-APClientPP", "DeathLink" })
-            PrintToAll("DeathLink has been enabled")
+            PrintToAll("DeathLink has been enabled with type " .. tostring(DeathLinkType))
         end
 
         print("Getting slot info")
@@ -217,7 +219,7 @@ function Connect(_server, _slot, _password)
         --ParseItemUnlocks()
         print("Done")
         Helper_OnConnected()
-
+        
 
         -- To-do,Call for lock items here
     end
@@ -227,11 +229,13 @@ function Connect(_server, _slot, _password)
         Helper_OnDisconnect()
     end
 
+    ---@param ItemsReceived NetworkItem[]
     function OnReceiveItems(ItemsReceived)
         --PrintToAll("Items received: " .. #ItemsReceived)
         for _, item in ipairs(ItemsReceived) do
             ParseItem(ap:get_item_name(item.item, nil))
         end
+        if IsFirstConnection then IsFirstConnection = false end
     end
 
     function on_location_info(locationInfos)
@@ -479,7 +483,7 @@ function ParseItem(item_name)
             LockZone() -- Should enable it back mid game
         end
         print("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
-    elseif string.find(item_name, "Trap") ~= nil then
+    elseif string.find(item_name, "Trap") ~= nil and not IsFirstConnection then
         QueueTrap(item_name)
     else
         print("Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")

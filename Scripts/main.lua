@@ -172,10 +172,7 @@ function HookFunctions()
         ResultActor = self:get()
         ObtainedRank = ResultActor.RankType
         GameMode = ResultActor.GameResultType
-        if GameMode == 6 then
-            APSendAreaRankChecks(ObtainedRank, StageIndexToAreaIndex(CurrentStage))
-            return
-        end
+        if GameMode == 6 then return end
         APCheckRank(ObtainedRank, GameMode, nil, true)
         if ObtainedRank >= 2 then -- The player must get at least a C rank to clear the mode
             APClearStage(GameMode, true)
@@ -218,6 +215,7 @@ function HookFunctions()
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
+            APSendAreaRankChecks(CurrentScore, StageIndexToAreaIndex(CurrentStage), CurrentDifficulty)
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
             PerformTrap()
         end)
