@@ -52,6 +52,7 @@ function APOasisIsLevelUnlocked(levelIndex)
 end
 
 function APZenIsAreaUnlocked(areaIndex)
+    if areaIndex > 26 then GameGoal() return true end
     if not UnlockedGroups[areaIndex] then return true end
     return false
 end
@@ -556,4 +557,8 @@ function LockZone()
     local PManager = FindFirstOf("TPPuzzleManager_C")
     if PManager == nil or not PManager:IsValid() then return end
     PManager:EnableZenLevel(ZoneUnlocked)
+end
+
+function GameGoal()
+    ap:StatusUpdate(ap.ClientStatus.GOAL)
 end

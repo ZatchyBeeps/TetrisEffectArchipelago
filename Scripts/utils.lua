@@ -58,7 +58,7 @@ local TrapActive = false
 ---@return {[integer]: boolean}
 function MakeSet(size, at_start)
     local set = {}
-    start_index = 0
+    local start_index = 0
     if at_start ~= nil then start_index = at_start end
     for i = start_index, size, 1 do
         set[i] = false

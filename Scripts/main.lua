@@ -277,22 +277,7 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-    --@type ATPPuzzleManager_C
-    ---@type ATPStageManager_C
-    local thing = FindFirstOf("TPStageManager_C")
-    local res = {}
-    local yeah = thing.ModeBehavior:GetFName():ToString()
-    print(yeah)
-    local garbage = TrapList["Broken Mino Trap"]
-    garbage()
-    --print(tostring(yeah.Difficulty))
-    --thing:SetExtendedPlacementFreeTime(0.24, false)
-    --print(tostring(thing.HoldForbad = false))
-    --TPModeBehaviorZenStroy_C /Game/Levels/GamePersistant.GamePersistant:PersistentLevel.TPStageManager_C_2147481864.NODE_AddTPModeBehaviorZenStroy-26
-    for index, value in pairs(res) do
-        print(tostring(value))
-    end
-    debug_GiveAll()
+    GameGoal()
 end)
 
 --Get difficulty
