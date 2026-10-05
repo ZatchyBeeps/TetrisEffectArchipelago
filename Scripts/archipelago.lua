@@ -368,6 +368,14 @@ end
 function disconnect()
     if ap == nil then return end
     checkedLocations = {}
+    UnlockedZenLevels = {}
+    UnlockedEffectLevels = {}
+    UnlockedGroups = {}
+    IsFirstConnection = true
+    TSpinNum = 0
+    TetrisNum = 0
+    BackToBackNum = 0
+    BackToBackRen = 0
     item_list = {}
     ap = nil
     isDeathLink = false
