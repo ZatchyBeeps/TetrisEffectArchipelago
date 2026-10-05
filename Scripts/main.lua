@@ -140,8 +140,8 @@ function HookFunctions()
                 ResIndex = value
             end
             APClearStage(ResIndex, false)
-            --print(tostring(ResIndex))
-            if not APZenIsStageUnlocked(ResIndex + 1) then
+            print(tostring(ResIndex))
+            if APZenIsStageUnlocked(ResIndex + 1) then
                 GameOveredByBlockage = true
                 -- We wait a bit, but not too much!, so it's not an abrupt game over
                 ExecuteWithDelay(1500, function()
@@ -207,6 +207,7 @@ function HookFunctions()
                 local StageManager = FindFirstOf("TPStageManager_C")
                 if StageManager ~= nil then
                     CurrentDifficulty = StageManager.ModeBehavior.Difficulty
+                    if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
                 end
                 print("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
                 

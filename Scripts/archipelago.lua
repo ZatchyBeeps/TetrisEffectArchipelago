@@ -52,9 +52,9 @@ function APOasisIsLevelUnlocked(levelIndex)
 end
 
 function APZenIsAreaUnlocked(areaIndex)
-    if areaIndex > 26 then GameGoal() return true end
-    if not UnlockedGroups[areaIndex] then return true end
-    return false
+    if areaIndex >= 26 then return true end
+    if not UnlockedGroups[areaIndex] then return false end
+    return true
 end
 
 function APZenIsStageUnlocked(stageIndex)
@@ -107,6 +107,7 @@ function APSendAreaRankChecks(Score, Area, Difficulty)
 end
 
 function APClearStage(Stage, IsEffect)
+    if Stage == 26 then GameGoal() end
     if IsEffect == nil or not IsEffect then
         StageName = ZenLevels[Stage]
         item_name = string.format("%s Stage Cleared", StageName)
@@ -121,7 +122,7 @@ end
 function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear)
     if LinesCleared == 4 then TetrisNum = TetrisNum + 1 end
     if TSpinType ~= 0 then TSpinNum = TSpinNum + 1 end
-    if ComboAmount == 3 then SendNext(ap:get_location_id("Made an 8 line combo 1 times")) end
+    if ComboAmount == 8 then SendNext(ap:get_location_id("Made an 8 line combo 1 times")) end
     if WasB2B then BackToBackNum = BackToBackNum + 1 end
     if WasAllClear then SendNext(ap:get_location_id("Made 1 all clear")) end
     if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
@@ -560,5 +561,8 @@ function LockZone()
 end
 
 function GameGoal()
-    ap:StatusUpdate(ap.ClientStatus.GOAL)
+    LoopAsync(1000, function ()
+        print("Attempting to make player goal")
+        return ap:StatusUpdate(ap.ClientStatus.GOAL)
+    end)
 end
