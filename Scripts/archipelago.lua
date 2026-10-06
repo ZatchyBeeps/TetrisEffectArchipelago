@@ -70,6 +70,7 @@ end
 function APCheckRank(Score, Stage, Difficulty, IsEffect)
     if ap == nil then return end
     if IsEffect == nil or not IsEffect then
+        if Difficulty == 0 then return end
         local CurrentRank = RequestRank(Score, Stage, Difficulty)
         local StageName = ZenLevels[Stage]
         for _, value in ipairs(CurrentRank) do
@@ -96,6 +97,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
 end
 
 function APSendAreaRankChecks(Score, Area, Difficulty)
+    if Difficulty == 0 then return end
         for _, Rank in ipairs(RequestAreaRank(Score, Area, Difficulty)) do
             local item_name = string.format("Area %q: %s Rank", Area, Rank)
             local item_id = ap:get_location_id(item_name)
@@ -126,7 +128,7 @@ function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllCle
     if WasB2B then BackToBackNum = BackToBackNum + 1 end
     if WasAllClear then SendNext(ap:get_location_id("Made 1 all clear")) end
     if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
-    if TSpinType == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
+    if TSpinType == 2 and LinesCleared == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
     
 
     if TetrisNum >= 15 then
