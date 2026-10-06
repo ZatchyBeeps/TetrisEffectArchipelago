@@ -44,7 +44,7 @@ EffectLevels = {
     [12] = 'Combo',
     [13] = 'Target',
     [14] = 'Countdown',
-    [15] = 'Purity',
+    [15] = 'Purify',
     [16] = 'Mystery'
 }
 
