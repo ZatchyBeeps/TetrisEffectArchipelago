@@ -309,6 +309,13 @@ end)
 --Maybe an item to prevent hold? 
 --TPPuzzleManager_C.HoldForbad = false
 
+RegisterKeyBind(Key.F5, function ()
+    ---@type AModActor_C
+    modHelper = FindFirstOf("ModActor_C")
+    if modHelper ~= nil and modHelper:IsValid() then
+        modHelper.StatusBoxText:ToggleHide()
+    end
+end)
 
 
 RegisterKeyBind(Key.F8, function() -- Debug
