@@ -28,6 +28,8 @@ function HookFunctions()
         "/Game/BluePrints/Menu/Oasis/Widget/Menu_OasisSelectPlayModeVScroll_Widget.Menu_OasisSelectPlayModeVScroll_Widget_C:CreateList",
         function(self)
             OnOasisMenuOpen()
+            if ap == nil then PrintToAll("Warning! You haven't connected to archipelago yet! All stages are locked by default, so go back to the main menu and connect to a multiworld") end
+
             OnEffectMode = true
             local widget = self:get()
             --print(self:type())
@@ -55,6 +57,7 @@ function HookFunctions()
     RegisterHook(
         "/Game/BluePrints/Menu/ZenStory/Actor/ActorMenuZenStoryStageSelect.ActorMenuZenStoryStageSelect_C:InitializeController",
         function(self)
+            if ap == nil then PrintToAll("Warning! You haven't connected to archipelago yet! All stages are locked by default, so go back to the main menu and connect to a multiworld") end
             CurrentStage = -1
             -- Unlike Oasis, we don't wanna be too fast as the game will be activating the stage actors after selecting a difficulty
             -- 50ms seems to be the sweet spot
@@ -113,10 +116,10 @@ function HookFunctions()
                     end
                 end)
                 -- Somewhat prevents weird behaviours with the cursor thing being off screen breaking the stage selection until you'd went back to the difficulty select
-                ExecuteWithDelay(25, function()
+                ExecuteWithDelay(50, function()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
-                    ZenStoryManager:ResetAreaPosition(4)
+                    ZenStoryManager:ResetAreaPosition(StageIndexToAreaIndex(LastLevelUnlocked) or 4)
                 end)
             end)
         end)
@@ -148,7 +151,7 @@ function HookFunctions()
                     FindFirstOf("TPGamePlayManager_C"):CreateGameResult(true)
 
                     -- Just to tell the user why they're geting this screen
-                    ExecuteWithDelay(50, function()
+                    ExecuteWithDelay(75, function()
                         ---@type AActorGameOver_C
                         local gameoveractor = FindFirstOf("ActorGameOver_C")
                         if gameoveractor:IsValid() then
