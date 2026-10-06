@@ -59,9 +59,9 @@ AreaRankTables = {
 ---@param difficulty integer What difficulty is the player on? (1: easy, 2: normal, 3: hard)
 ---@return string[]
 function RequestAreaRank(score, area, difficulty)
-    LevelTable = RankTables[area]
-    ResultRanks = {"E"}
-    for rank, score_requirements in pairs(LevelTable) do
+    local AreaTable = AreaRankTables[area]
+    local ResultRanks = {"E"}
+    for rank, score_requirements in pairs(AreaTable) do
         if score_requirements[difficulty] < score then
             table.insert(ResultRanks, rank)
         end
