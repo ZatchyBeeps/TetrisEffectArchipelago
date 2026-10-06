@@ -79,7 +79,12 @@ function PrintToAll(message)
     if modHelper:IsValid() then
         modHelper.StatusBoxText:PrintMessage(message)
     end
-    print(message)
+    print(message .. "\n")
+end
+
+---@param message string
+function PrettyPrint(message)
+    print(message .. "\n")
 end
 
 function Helper_OnDisconnect()
@@ -135,7 +140,7 @@ end
 
 function QueueTrap(trap_name)
     if trap_name == "Ghost Piece Trap" then
-        print("Received a trap but it's not implemented yet")
+        PrettyPrint("Received a trap but it's not implemented yet")
         return
     end
     table.insert(QueuedTraps, trap_name)

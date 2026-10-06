@@ -78,7 +78,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             local item_id = ap:get_location_id(item_name)
             if item_id ~= nil then
                 SendLocation(item_id)
-            else print("Attempted to send location but it was not found. Item: " .. item_name)
+            else PrettyPrint("Attempted to send location but it was not found. Item: " .. item_name)
             end
         end
 
@@ -89,7 +89,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             local item_id = ap:get_location_id(item_name)
             if item_id ~= nil then
                 SendLocation(item_id)
-            else print("Attempted to send location but it was not found. Item: " .. item_name)
+            else PrettyPrint("Attempted to send location but it was not found. Item: " .. item_name)
             end
         end
     end
@@ -103,7 +103,7 @@ function APSendAreaRankChecks(Score, Area, Difficulty)
             local item_id = ap:get_location_id(item_name)
             if item_id ~= nil then
                 SendLocation(item_id)
-            else print("Attempted to send location but it was not found. Item: " .. item_name)
+            else PrettyPrint("Attempted to send location but it was not found. Item: " .. item_name)
             end
         end
 end
@@ -161,7 +161,7 @@ end
 
 function APSendDeathLink()
     if ap ~= nil and isDeathLink then
-        PrintToAll("You topped out! Sending death link...")
+        --PrintToAll("You topped out! Sending death link...")
         ap:Bounce({ cause = "", source = slot, time = os.time(os.date("!*t")) }, nil, nil, {"DeathLink"})
     end
 end
@@ -172,7 +172,7 @@ function Connect(_server, _slot, _password)
     password = _password
 
     function OnSocketConnected()
-        print("Socket connected succesfully")
+        PrettyPrint("Socket connected succesfully")
     end
 
     function OnSocketError(reason)
@@ -185,7 +185,7 @@ function Connect(_server, _slot, _password)
     end
 
     function HandleRoomInfo()
-        print("Room info")
+        PrettyPrint("Room info")
         ap:ConnectSlot(slot, password, items_handling, { "Lua-APClientPP" }, APVersion)
     end
 
@@ -197,15 +197,15 @@ function Connect(_server, _slot, _password)
         LocationsMissing = ap.missing_locations
         GameOptions = RSlotData
         for key, value in pairs(GameOptions) do
-            print(key .. ": " .. tostring(value))
+            PrettyPrint(key .. ": " .. tostring(value))
         end
-        print("Getting locations")
+        PrettyPrint("Getting locations")
         for _, id in ipairs(ap.checked_locations) do
             CheckLocation(id)
         end
 
 
-        print("Enabling DeathLink")
+        PrettyPrint("Enabling DeathLink")
         if GameOptions.death_link ~= 3 then
             isDeathLink = true
             DeathLinkType = GameOptions.death_link
@@ -213,7 +213,7 @@ function Connect(_server, _slot, _password)
             PrintToAll("DeathLink has been enabled with type " .. tostring(DeathLinkType))
         end
 
-        print("Getting slot info")
+        PrettyPrint("Getting slot info")
         ZenStoryByAreas = GameOptions.unlock_method
         EffectModeEnabled = GameOptions.is_include_effect
         ExcludedModes = GameOptions.excluded_modes
@@ -221,7 +221,7 @@ function Connect(_server, _slot, _password)
         ZoneUnlocked = GameOptions.is_start_zone
 
         --ParseItemUnlocks()
-        print("Done")
+        PrettyPrint("Done")
         Helper_OnConnected()
         
 
@@ -246,7 +246,7 @@ function Connect(_server, _slot, _password)
         for _, info in ipairs(locationInfos) do
             local itemname = ap:get_item_name(info.item, ap:get_player_game(info.player))
             local location = ap:get_location_name(info.location, ap:get_player_game(info.player))
-            print("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
+            PrettyPrint("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
         end
     end
 
@@ -266,8 +266,8 @@ function Connect(_server, _slot, _password)
     end
 
     function on_data_package_changed(data_package)
-        print("Data package changed:")
-        print(table.concat(data_package, ", "))
+        PrettyPrint("Data package changed:")
+        PrettyPrint(table.concat(data_package, ", "))
     end
 
     function on_print(msg)
@@ -279,9 +279,9 @@ function Connect(_server, _slot, _password)
     end
 
     function on_bounced(bounce)
-        print("Bounced:")
+        PrettyPrint("Bounced:")
         for k, v in pairs(bounce) do
-            print(k .. ": " .. tostring(v))
+            PrettyPrint(k .. ": " .. tostring(v))
         end
         if bounce.tags and isDeathLink then
             for _, tag in ipairs(bounce.tags) do
@@ -295,23 +295,23 @@ function Connect(_server, _slot, _password)
     end
 
     function on_retrieved(map, keys, extra)
-        print("Retrieved:")
+        PrettyPrint("Retrieved:")
         for _, key in ipairs(keys) do
-            print("  " .. key .. ": " .. tostring(map[key]))
+            PrettyPrint("  " .. key .. ": " .. tostring(map[key]))
         end
-        print("Extra:")
+        PrettyPrint("Extra:")
         for key, value in pairs(extra) do
-            print("  " .. key .. ": " .. tostring(value))
+            PrettyPrint("  " .. key .. ": " .. tostring(value))
         end
     end
 
     function on_set_reply(message)
-        print("Set Reply:")
+        PrettyPrint("Set Reply:")
         for key, value in pairs(message) do
-            print("  " .. key .. ": " .. tostring(value))
+            PrettyPrint("  " .. key .. ": " .. tostring(value))
             if key == "value" and type(value) == "table" then
                 for subkey, subvalue in pairs(value) do
-                    print("    " .. subkey .. ": " .. tostring(subvalue))
+                    PrettyPrint("    " .. subkey .. ": " .. tostring(subvalue))
                 end
             end
         end
@@ -353,7 +353,7 @@ function connectToAp(host, slot, password)
             if #LocationsToCheck > 0 then
                 local ToSend = {}
                 for _, value in ipairs(LocationsToCheck) do
-                    print("Sending location id " .. tostring(value))
+                    PrettyPrint("Sending location id " .. tostring(value))
                     table.insert(ToSend, value)
                     checkedLocations[value] = true
                 end
@@ -475,18 +475,18 @@ function ParseItem(item_name)
                         if not CheckIfModelIsSkipped(item_name) then UnlockedEffectLevels[level] = true end
                     end
                 end
-                print("Received and unlocked levels of area: " .. item_name)
+                PrettyPrint("Received and unlocked levels of area: " .. item_name)
                 return
             end
         end
         if ZenLevelItems[item_name] ~= nil then
             UnlockedZenLevels[ZenLevelItems[item_name]] = true
-            print("Received and unlocked level: " .. item_name)
+            PrettyPrint("Received and unlocked level: " .. item_name)
             return
         end
         if EffectLevelItems[item_name] ~= nil then
             UnlockedEffectLevels[EffectLevelItems[item_name]] = true
-            print("Received and unlocked mode: " .. item_name)
+            PrettyPrint("Received and unlocked mode: " .. item_name)
             return
         end
         if item_name == "Zone Unlock" and not ZoneUnlocked then
@@ -494,11 +494,11 @@ function ParseItem(item_name)
             PrintToAll("You got your Zone!")
             LockZone() -- Should enable it back mid game
         end
-        print("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        PrettyPrint("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil and not IsFirstConnection then
         QueueTrap(item_name)
     else
-        print("Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+        PrettyPrint("Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
@@ -518,7 +518,7 @@ end
 ---@param ID integer
 function SendLocation(ID)
     if checkedLocations[ID] or ap == nil then return end
-    print("Attempting to send item " .. ap:get_location_name(ID, ap:get_game()))
+    PrettyPrint("Attempting to send item " .. ap:get_location_name(ID, ap:get_game()))
     table.insert(LocationsToCheck, ID)
 end
 
@@ -526,7 +526,7 @@ end
 ---@param BaseLocationID integer
 function SendNext(BaseLocationID)
     if BaseLocationID == nil then
-        print("We got a null value for send next!")
+        PrettyPrint("We got a null value for send next!")
         return
     end
     for i = 0, 49, 1 do
@@ -538,7 +538,7 @@ function SendNext(BaseLocationID)
 end
 
 function DeathLinkPlayer()
-    print("Trying to deathlink player")
+    PrettyPrint("Trying to deathlink player")
     isDeathLink = false
     if DeathLinkType == 0 then
         ---@type ATPPuzzleManager_C
@@ -572,7 +572,7 @@ end
 
 function GameGoal()
     LoopAsync(1000, function ()
-        print("Attempting to make player goal")
+        PrettyPrint("Attempting to make player goal")
         return ap:StatusUpdate(ap.ClientStatus.GOAL)
     end)
 end

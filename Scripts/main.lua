@@ -42,11 +42,11 @@ function HookFunctions()
                             elem:get():SetIsEnabled(false)
                             elem:get().IsInitialize = false
                         else
-                            print("Skipping unlocked level")
+                            PrettyPrint("Skipping unlocked level")
                         end
                     end)
                 else
-                    print("Not valid")
+                    PrettyPrint("Not valid")
                 end
             end)
         end)
@@ -62,7 +62,7 @@ function HookFunctions()
                 ---@type AZenStoryBaseManager_C
                 local ZenStoryManager = FindFirstOf("ZenStoryBaseManager_C")
                 if not ZenStoryManager:IsValid() then
-                    print(
+                    PrettyPrint(
                     "Failed to get manager, unobtained levels cannot be locked. Please report this error (ZenManager was not present)")
                     return
                 end
@@ -81,7 +81,7 @@ function HookFunctions()
                         -- Zen unlocked by areas
                         -- This whole thing is untested and I'm pretty sure it doesn't even work. Will work on it later
                         if not APZenIsAreaUnlocked(i) then
-                            print("Locking area " .. tostring(i))
+                            PrettyPrint("Locking area " .. tostring(i))
                             elem:set(nil)
                         else
                             if i == 2 then
@@ -136,11 +136,11 @@ function HookFunctions()
 
             FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
             for index, value in pairs(StageIndex) do
-                print(tostring(index) .. " " .. tostring(value))
+                PrettyPrint(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
             APClearStage(ResIndex, false)
-            print(tostring(ResIndex))
+            PrettyPrint(tostring(ResIndex))
             if not APZenIsStageUnlocked(ResIndex + 1) then
                 GameOveredByBlockage = true
                 -- We wait a bit, but not too much!, so it's not an abrupt game over
@@ -209,7 +209,7 @@ function HookFunctions()
                     CurrentDifficulty = StageManager.ModeBehavior.Difficulty
                     if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
                 end
-                print("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
+                PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
                 
             end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
@@ -243,7 +243,7 @@ function HookFunctions()
     -- On main menu open
     -- Starts the ConnectionHelper widget
     RegisterHook("/Game/BluePrints/Menu/MenuTop/Actor/Actor_Menu_Top.Actor_Menu_Top_C:InitializedWidget", function(self)
-        print("Triggered game start")
+        PrettyPrint("Triggered game start")
         OnEffectMode = false
 
         ExecuteInGameThread(function()
@@ -335,15 +335,15 @@ end)
 
 
 function OnOasisMenuOpen()
-    print("Oasis menu opened")
+    PrettyPrint("Oasis menu opened")
 end
 
 function MainMenuStart()
-    print("Main menu has been detected")
+    PrettyPrint("Main menu has been detected")
 end
 
 function OnZenMenuOpen()
-    print("Zen menu has been opened")
+    PrettyPrint("Zen menu has been opened")
 end
 
 RegisterInitGameStatePostHook(function(Context)
@@ -354,9 +354,9 @@ RegisterInitGameStatePostHook(function(Context)
             ExecuteInGameThread(function()
                 modHelper = FindObject(nil, "ModActor_C", EObjectFlags.RF_NoFlags, EObjectFlags.RF_NoFlags)
                 if modHelper:IsValid() then
-                    print("Mod helper hooked and loaded")
+                    PrettyPrint("Mod helper hooked and loaded")
                 else
-                    print("Error getting mod helper! Some functions won't work")
+                    PrettyPrint("Error getting mod helper! Some functions won't work")
                 end
             end)
         end)
@@ -365,7 +365,7 @@ RegisterInitGameStatePostHook(function(Context)
     end
 end)
 
-print("TE:A loaded and ready!")
+PrettyPrint("TE:A loaded and ready!")
 
 --RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(self, NewPawn)
 
