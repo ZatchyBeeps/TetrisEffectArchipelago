@@ -160,7 +160,7 @@ function HookFunctions()
                     end)
                 end)
             else
-                AccumulatedScore = CurrentScore
+                AccumulatedScore = GetGameScore()
                 CurrentScore = 0
                 CurrentStage = ResIndex + 1
             end
@@ -219,7 +219,7 @@ function HookFunctions()
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
-            APSendAreaRankChecks(CurrentScore, StageIndexToAreaIndex(CurrentStage), CurrentDifficulty)
+            APSendAreaRankChecks(GetGameScore(), StageIndexToAreaIndex(CurrentStage), CurrentDifficulty)
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
             PerformTrap()
         end)

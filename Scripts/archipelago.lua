@@ -271,12 +271,10 @@ function Connect(_server, _slot, _password)
     end
 
     function on_print(msg)
-        print("[Archipelago] ")
         PrintToAll(msg)
     end
 
     function on_print_json(msg, extra)
-        print("[Archipelago] ")
         PrintToAll(ap:render_json(msg, message_format))
     end
 
