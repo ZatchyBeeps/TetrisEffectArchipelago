@@ -172,9 +172,9 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         PManager:SetBrokenMinoEnable(true, math.random())
         ExecuteWithDelay(15000, function ()
-            PManager:SetBrokenMinoEnable(false, 0)
             PrintToAll("The Broken Mino Trap has expired...")
             TrapActive = false
+            if PManager:IsValid() then PManager:SetBrokenMinoEnable(false, 0) end
         end)
     end,
     ["Zone Trap"] = function()
@@ -190,10 +190,11 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         PManager:ForbidHold(true)
         ExecuteWithDelay(30000, function ()
-            PManager:ForbidHold(false)
             PrintToAll("The Hold Trap has expired...")
+            TrapActive = false
+            if PManager:IsValid() then PManager:ForbidHold(false) end
         end)
-        TrapActive = false
+        
     end,
     ["Swap Trap"] = function ()
         ---@type ATPPuzzleManager_C
@@ -208,7 +209,7 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         PManager.GamePlayerPawns[1].ForceInvisibleNextMino = true
         ExecuteWithDelay(30000, function ()
-            PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false
+            PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false -- Even after a game over, I don't think the game manager restarts itself. In fact, I had to do this instead of getting the pawn because it doesn't destroy the previous ones lol
             PrintToAll("The Queue Trap has expired...")
             TrapActive = false
         end)
@@ -222,10 +223,13 @@ TrapList = {
         PManager:SetDifficultyLevel(20, false)
         PManager:SetExtendedPlacementFreeTime(0.24, false)
         ExecuteWithDelay(7000, function ()
-            PManager:SetDifficultyLevel(OgSpeed, false)
-            PManager:SetExtendedPlacementFreeTime(OgPlaceTime, false)
+            
             PrintToAll("The Speed Trap has expired...")
             TrapActive = false
+            if PManager:IsValid() then
+                PManager:SetDifficultyLevel(OgSpeed, false)
+                PManager:SetExtendedPlacementFreeTime(OgPlaceTime, false)
+            end
         end)
     end,
         ["Ghost Piece Trap"] = function ()
@@ -260,7 +264,7 @@ function PerformTrap()
         local Trap = TrapList[QueuedTraps[SelectedTrap]]
         if Trap ~= nil then
             TrapActive = true
-            PrintToAll(string.format("Trap triggered! %s", QueuedTraps[SelectedTrap]))
+            PrintToAll(string.format("!!! Trap triggered! %s", QueuedTraps[SelectedTrap]))
             table.remove(QueuedTraps, SelectedTrap)
             Trap()
             
