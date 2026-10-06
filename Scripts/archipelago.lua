@@ -52,12 +52,12 @@ function APOasisIsLevelUnlocked(levelIndex)
 end
 
 function APZenIsAreaUnlocked(areaIndex)
-    if areaIndex >= 26 then return true end
     if not UnlockedGroups[areaIndex] then return false end
     return true
 end
 
 function APZenIsStageUnlocked(stageIndex)
+    if stageIndex > 26 then return true end
     return UnlockedZenLevels[stageIndex]
 end
 
@@ -151,7 +151,7 @@ end
 
 function APSendZoneChecks(LinesCleared)
     if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
-    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodetris"))
+    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodecatris"))
     elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
     elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
     elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
