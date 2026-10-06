@@ -141,7 +141,7 @@ function HookFunctions()
             end
             APClearStage(ResIndex, false)
             print(tostring(ResIndex))
-            if APZenIsStageUnlocked(ResIndex + 1) then
+            if not APZenIsStageUnlocked(ResIndex + 1) then
                 GameOveredByBlockage = true
                 -- We wait a bit, but not too much!, so it's not an abrupt game over
                 ExecuteWithDelay(1500, function()
