@@ -172,40 +172,40 @@ function Connect(_server, _slot, _password)
     password = _password
 
     function OnSocketConnected()
-        PrettyPrint("Socket connected succesfully")
+        PrettyPrint("[Archipelago] Socket connected succesfully")
     end
 
     function OnSocketError(reason)
-        PrintToAll("An error ocurred connecting socket: " .. tostring(reason))
+        PrintToAll("[Archipelago] An error ocurred connecting socket: " .. tostring(reason))
     end
 
     function OnSocketDisconnected()
-        PrintToAll("Connection to archipelago was lost. Reconnecting...")
+        PrintToAll("[Archipelago] Connection to archipelago was lost. Reconnecting...")
         itemList = {}
     end
 
     function HandleRoomInfo()
-        PrettyPrint("Room info")
+        PrettyPrint("[Archipelago] Room info step begin")
         ap:ConnectSlot(slot, password, items_handling, { "Lua-APClientPP" }, APVersion)
     end
 
     function OnSlotConnect(RSlotData)
-        PrintToAll("Slot succesfully connected")
+        PrintToAll("[Archipelago] Slot succesfully connected")
         IsFirstConnection = true
         --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
         --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
         LocationsMissing = ap.missing_locations
         GameOptions = RSlotData
         for key, value in pairs(GameOptions) do
-            PrettyPrint(key .. ": " .. tostring(value))
+            PrettyPrint("[Archipelago] [Room Info] " .. key .. ": " .. tostring(value))
         end
-        PrettyPrint("Getting locations")
+        PrettyPrint("[Archipelago] [Room Info] Getting locations")
         for _, id in ipairs(ap.checked_locations) do
             CheckLocation(id)
         end
 
 
-        PrettyPrint("Enabling DeathLink")
+        PrettyPrint("[Archipelago] [Room Info] Enabling DeathLink")
         if GameOptions.death_link ~= 3 then
             isDeathLink = true
             DeathLinkType = GameOptions.death_link
@@ -213,7 +213,7 @@ function Connect(_server, _slot, _password)
             PrintToAll("DeathLink has been enabled with type " .. tostring(DeathLinkType))
         end
 
-        PrettyPrint("Getting slot info")
+        PrettyPrint("[Archipelago] [Room Info] Getting slot info")
         ZenStoryByAreas = GameOptions.unlock_method
         EffectModeEnabled = GameOptions.is_include_effect
         ExcludedModes = GameOptions.excluded_modes
@@ -221,9 +221,8 @@ function Connect(_server, _slot, _password)
         ZoneUnlocked = GameOptions.is_start_zone
 
         --ParseItemUnlocks()
-        PrettyPrint("Done")
+        PrettyPrint("[Archipelago] [Room Info] Done")
         Helper_OnConnected()
-        
 
         -- To-do,Call for lock items here
     end
@@ -246,7 +245,7 @@ function Connect(_server, _slot, _password)
         for _, info in ipairs(locationInfos) do
             local itemname = ap:get_item_name(info.item, ap:get_player_game(info.player))
             local location = ap:get_location_name(info.location, ap:get_player_game(info.player))
-            PrettyPrint("scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
+            PrettyPrint("[Archipelago] Scouted item " .. tostring(itemname) .. " in location " .. tostring(location))
         end
     end
 
@@ -266,20 +265,23 @@ function Connect(_server, _slot, _password)
     end
 
     function on_data_package_changed(data_package)
-        PrettyPrint("Data package changed:")
+        PrettyPrint("[Archipelago] Data package changed:")
+        if IsFirstConnection then PrintToAll("WARNING: Data package has changed on first connection. If this is the first time you've connected to the server please reconnect or restart your game as your starting items might not have been loaded correctly.") end
         PrettyPrint(table.concat(data_package, ", "))
     end
 
     function on_print(msg)
+        print("[Archipelago] ")
         PrintToAll(msg)
     end
 
     function on_print_json(msg, extra)
+        print("[Archipelago] ")
         PrintToAll(ap:render_json(msg, message_format))
     end
 
     function on_bounced(bounce)
-        PrettyPrint("Bounced:")
+        PrettyPrint("[Archipelago] Bounced:")
         for k, v in pairs(bounce) do
             PrettyPrint(k .. ": " .. tostring(v))
         end
@@ -295,18 +297,18 @@ function Connect(_server, _slot, _password)
     end
 
     function on_retrieved(map, keys, extra)
-        PrettyPrint("Retrieved:")
+        PrettyPrint("[Archipelago] Retrieved:")
         for _, key in ipairs(keys) do
             PrettyPrint("  " .. key .. ": " .. tostring(map[key]))
         end
-        PrettyPrint("Extra:")
+        PrettyPrint("[Archipelago] Extra:")
         for key, value in pairs(extra) do
             PrettyPrint("  " .. key .. ": " .. tostring(value))
         end
     end
 
     function on_set_reply(message)
-        PrettyPrint("Set Reply:")
+        PrettyPrint("[Archipelago] Set Reply:")
         for key, value in pairs(message) do
             PrettyPrint("  " .. key .. ": " .. tostring(value))
             if key == "value" and type(value) == "table" then
@@ -475,30 +477,31 @@ function ParseItem(item_name)
                         if not CheckIfModelIsSkipped(item_name) then UnlockedEffectLevels[level] = true end
                     end
                 end
-                PrettyPrint("Received and unlocked levels of area: " .. item_name)
+                PrettyPrint("[Item Parsing] Received and unlocked levels of area: " .. item_name)
                 return
             end
         end
         if ZenLevelItems[item_name] ~= nil then
             UnlockedZenLevels[ZenLevelItems[item_name]] = true
-            PrettyPrint("Received and unlocked level: " .. item_name)
+            PrettyPrint("[Item Parsing] Received and unlocked level: " .. item_name)
             return
         end
         if EffectLevelItems[item_name] ~= nil then
             UnlockedEffectLevels[EffectLevelItems[item_name]] = true
-            PrettyPrint("Received and unlocked mode: " .. item_name)
+            PrettyPrint("[Item Parsing] Received and unlocked mode: " .. item_name)
             return
         end
         if item_name == "Zone Unlock" and not ZoneUnlocked then
             ZoneUnlocked = true
-            PrintToAll("You got your Zone!")
+            PrintToAll("[Item Parsing] You got your Zone!")
             LockZone() -- Should enable it back mid game
         end
-        PrettyPrint("Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        PrettyPrint("[Item Parsing] Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
     elseif string.find(item_name, "Trap") ~= nil and not IsFirstConnection then
         QueueTrap(item_name)
+        PrettyPrint("[Item Parsing] The trap " .. item_name .. " has been queued.")
     else
-        PrettyPrint("Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+        PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
@@ -517,7 +520,8 @@ end
 ---Tells the multiworld to send the given location id
 ---@param ID integer
 function SendLocation(ID)
-    if checkedLocations[ID] or ap == nil then return end
+    if ID == nil or checkedLocations[ID] or ap == nil then return end
+    if ap:get_location_name(ID, ap:get_game()) == "Unknown" then PrettyPrint("[Warning] Catched unknown location. ID: " .. tostring(ID)) return end
     PrettyPrint("Attempting to send item " .. ap:get_location_name(ID, ap:get_game()))
     table.insert(LocationsToCheck, ID)
 end
@@ -525,6 +529,7 @@ end
 ---Sends the next location available from the given location ID as a base. Intended for the trick locations
 ---@param BaseLocationID integer
 function SendNext(BaseLocationID)
+    PrettyPrint("Sending next location from the given base ID: " .. BaseLocationID)
     if BaseLocationID == nil then
         PrettyPrint("We got a null value for send next!")
         return
