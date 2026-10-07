@@ -59,7 +59,11 @@ function APZenIsAreaUnlocked(areaIndex)
 end
 
 function APZenIsStageUnlocked(stageIndex)
-    if stageIndex == 26 and StagesCompleted < LevelsToComplete and not UnlockedZenLevels[26] then return false end
+    --print(tostring(stageIndex))
+    if stageIndex == 26 then
+        if StagesCompleted < LevelsToComplete and not UnlockedZenLevels[26] then return true end
+        return false
+    end
     if stageIndex > 26 then return true end
     return UnlockedZenLevels[stageIndex]
 end
@@ -387,6 +391,8 @@ function disconnect()
     TetrisNum = 0
     BackToBackNum = 0
     BackToBackRen = 0
+    StagesCompleted = 0
+    LevelsToComplete = 0
     item_list = {}
     ap = nil
     isDeathLink = false
