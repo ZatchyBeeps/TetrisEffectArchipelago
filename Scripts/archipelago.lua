@@ -30,7 +30,9 @@ EffectModeEnabled = false
 ExcludedModes = {}
 RanksanityEnabled = false
 ZoneUnlocked = true
+LevelsToComplete = 0
 LastStage = 0
+StagesCompleted = 0
 
 local UnlockedZenLevels = MakeSet(26)
 local UnlockedEffectLevels = MakeSet(16)
@@ -57,6 +59,7 @@ function APZenIsAreaUnlocked(areaIndex)
 end
 
 function APZenIsStageUnlocked(stageIndex)
+    if stageIndex == 26 and StagesCompleted < LevelsToComplete and not UnlockedZenLevels[26] then return false end
     if stageIndex > 26 then return true end
     return UnlockedZenLevels[stageIndex]
 end
@@ -219,6 +222,8 @@ function Connect(_server, _slot, _password)
         ExcludedModes = GameOptions.excluded_modes
         RanksanityEnabled = GameOptions.is_ranksanity
         ZoneUnlocked = GameOptions.is_start_zone
+        LevelsToComplete = GameOptions.stages_required
+        PrettyPrint("[Archipelago] [Room Info] Requiring amount of stages: " .. tostring(LevelsToComplete))
 
         --ParseItemUnlocks()
         PrettyPrint("[Archipelago] [Room Info] Done")
@@ -261,6 +266,10 @@ function Connect(_server, _slot, _password)
         local name = ap:get_location_name(location_id, nil)
         if name ~= nil then
             checkedLocations[location_id] = true
+            if string.find(name, "Cleared") then
+                StagesCompleted = StagesCompleted + 1
+                PrettyPrint("Level has been cleared! Adding to the count...")
+            end
         end
     end
 
