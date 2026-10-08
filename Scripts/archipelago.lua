@@ -472,7 +472,7 @@ EffectLevelItems = {
     ['Effect: Combo Mode Unlock'] = 12,
     ['Effect: Target Mode Unlock'] = 13,
     ['Effect: Countdown Mode Unlock'] = 14,
-    ['Effect: Purity Mode Unlock'] = 15,
+    ['Effect: Purify Mode Unlock'] = 15,
     ['Effect: Mystery Mode Unlock'] = 16
 }
 
