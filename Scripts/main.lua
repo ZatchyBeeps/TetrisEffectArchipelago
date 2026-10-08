@@ -295,22 +295,15 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-    FindFirstOf("Actor_Menu_Top_C").UserWidget.Multiplay.LocationBoxs = nil
+	--debug_GiveAll()
+    --FindFirstOf("Actor_Menu_Top_C").UserWidget.Multiplay.LocationBoxs = nil
 end)
-
---Get difficulty
---FindFirstOf("TPStageManager_C").ModeBehavior.Difficulty
 
 
 -- For later funnies
 -- TPPuzzleManager_C:AddScore(Add)
 -- TPPuzzleManager_C:InvertFieldH()
 
--- To change if user can use the zone
---TPPuzzleManager_C:EnableZenLevel(false)
-
---Maybe an item to prevent hold? 
---TPPuzzleManager_C.HoldForbad = false
 
 RegisterKeyBind(Key.F5, function ()
     ---@type AModActor_C

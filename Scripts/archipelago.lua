@@ -90,7 +90,24 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
         end
 
     else
-        local StageName = EffectLevels[GameResultToModeID[Stage]]
+        local StageName = nil
+        if Stage == 17 then -- Obtain which Playlist mode are we playing, or QuickPlay if we aren't
+            ---@type ATPStageManager_C
+            local StageManager = FindFirstOf("TPStageManager_C")
+            if StageManager ~= nil then
+                local IsQuickPlay = false
+
+                local res = {}
+                StageManager.ModeBehavior:IsQuickPlay(res)
+                for _, value in ipairs(res) do IsQuickPlay = value end
+
+                if not IsQuickPlay then StageName = EffectLevels[8 + StageManager.ModeBehavior.PlayListKind]
+                else StageName = EffectLevels[7] end
+            end
+        else
+            StageName = EffectLevels[GameResultToModeID[Stage]] -- Get the name if it's some other stage emode
+        end
+        PrettyPrint("Sending ranks of Effect mode " .. StageName)
         for _, value in ipairs(GetObtainedRanks(Score)) do
             local item_name = string.format("%s: %s Rank", StageName, value)
             local item_id = ap:get_location_id(item_name)
