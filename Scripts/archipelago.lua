@@ -242,7 +242,7 @@ function Connect(_server, _slot, _password)
         EffectModeEnabled = GameOptions.is_include_effect
         ExcludedModes = GameOptions.excluded_modes
         RanksanityEnabled = GameOptions.is_ranksanity
-        ZoneUnlocked = GameOptions.is_start_zone
+        ZoneUnlocked = GameOptions.is_start_zone == 1
         LevelsToComplete = GameOptions.stages_required
         PrettyPrint("[Archipelago] [Room Info] Requiring amount of stages: " .. tostring(LevelsToComplete))
 

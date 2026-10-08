@@ -182,6 +182,9 @@ function HookFunctions()
         end
     end)
 
+    NotifyOnNewObject("/Game/BluePrints/Game/TPGamePlayerPawn.TPGamePlayerPawn_C", function ()
+        LockZone()
+    end)
 
     -- On drop any tetrimino
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:CalcLineEraseScore",
