@@ -219,7 +219,7 @@ function HookFunctions()
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
-            APSendAreaRankChecks(GetGameScore(), StageIndexToAreaIndex(CurrentStage), CurrentDifficulty)
+            if CurrentStage ~= 26 then APSendAreaRankChecks(GetGameScore(), StageIndexToAreaIndex(CurrentStage), CurrentDifficulty) end
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
             PerformTrap()
         end)

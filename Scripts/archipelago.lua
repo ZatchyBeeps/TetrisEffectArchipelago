@@ -61,8 +61,8 @@ end
 function APZenIsStageUnlocked(stageIndex)
     --print(tostring(stageIndex))
     if stageIndex == 26 then
-        if StagesCompleted < LevelsToComplete and not UnlockedZenLevels[26] then return true end
-        return false
+        if StagesCompleted < LevelsToComplete or not UnlockedZenLevels[26] then return false end
+        return true
     end
     if stageIndex > 26 then return true end
     return UnlockedZenLevels[stageIndex]
