@@ -9,7 +9,7 @@ local GameName = "Tetris Effect: Connected"
 local APVersion = { 0, 6, 7 }
 local modVersion = { 0, 0, 1 }
 local items_handling = APCli.Permission.AUTO_ENABLED
-local message_format = APCli.RenderFormat.TEXT
+local message_format = APCli.RenderFormat.ANSI
 
 ---@type APClient
 ap = nil
@@ -61,6 +61,7 @@ end
 function APZenIsStageUnlocked(stageIndex)
     --print(tostring(stageIndex))
     if stageIndex == 26 then
+        PrettyPrint("Metamorphosis is checking access rule: " .. tostring(LevelsToComplete) .. " with " .. tostring(StagesCompleted) .. " levels cleared")
         if StagesCompleted < LevelsToComplete or not UnlockedZenLevels[26] then return false end
         return true
     end
@@ -200,11 +201,11 @@ function Connect(_server, _slot, _password)
     end
 
     function OnSocketError(reason)
-        PrintToAll("[Archipelago] An error ocurred connecting socket: " .. tostring(reason))
+        StylePrintToAll("[Archipelago] An error ocurred connecting socket: " .. tostring(reason), MessageStyle.warning)
     end
 
     function OnSocketDisconnected()
-        PrintToAll("[Archipelago] Connection to archipelago was lost. Reconnecting...")
+        StylePrintToAll("[Archipelago] Connection to archipelago was lost. Reconnecting...", MessageStyle.error)
         itemList = {}
     end
 
@@ -214,7 +215,7 @@ function Connect(_server, _slot, _password)
     end
 
     function OnSlotConnect(RSlotData)
-        PrintToAll("[Archipelago] Slot succesfully connected")
+        StylePrintToAll("[Archipelago] Slot succesfully connected", MessageStyle.info)
         IsFirstConnection = true
         --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
         --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
@@ -234,7 +235,7 @@ function Connect(_server, _slot, _password)
             isDeathLink = true
             DeathLinkType = GameOptions.death_link
             ap:ConnectUpdate(nil, { "Lua-APClientPP", "DeathLink" })
-            PrintToAll("DeathLink has been enabled with type " .. tostring(DeathLinkType))
+            StylePrintToAll("DeathLink has been enabled with type " .. tostring(DeathLinkType), MessageStyle.info)
         end
 
         PrettyPrint("[Archipelago] [Room Info] Getting slot info")
@@ -254,7 +255,7 @@ function Connect(_server, _slot, _password)
     end
 
     function OnSlotRefused(reasons)
-        PrintToAll("Slot has refused connection. Reason: " .. table.concat(reasons, ", "))
+        StylePrintToAll("Slot has refused connection. Reason: " .. table.concat(reasons, ", "), MessageStyle.error)
         Helper_OnDisconnect()
     end
 
@@ -304,8 +305,14 @@ function Connect(_server, _slot, _password)
         PrintToAll(msg)
     end
 
+    ---@param msg {[integer]: {[string]: any}}
+    ---@param extra {[string]: any}
     function on_print_json(msg, extra)
-        PrintToAll(ap:render_json(msg, message_format))
+        if #msg == 1 then
+            PrintToAll(ap:render_json(msg, APCli.RenderFormat.ANSI))
+        else
+            JsonPrint(msg)
+        end
     end
 
     function on_bounced(bounce)
@@ -317,7 +324,7 @@ function Connect(_server, _slot, _password)
             for _, tag in ipairs(bounce.tags) do
                 if tag == "DeathLink" then
                     local cause = #bounce.data.cause > 0 and bounce.data.cause or (bounce.data.source .. " has died...")
-                    PrintToAll(cause)
+                    StylePrintToAll(cause, MessageStyle.error)
                     DeathLinkPlayer()
                 end
             end

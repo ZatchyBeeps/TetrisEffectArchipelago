@@ -50,8 +50,9 @@ function AModActor_C:FindWidget(Add) end
 function AModActor_C:GetWidgets() end
 -- Debug
 function AModActor_C:DisableSelected() end
+-- Display the version given of the mod
+function AModActor_C:SetModVersion(Version) end
 -- Debug
-
 function AModActor_C:TestExecute() end
 function AModActor_C:ReceiveBeginPlay() end
 ---@param DeltaSeconds float

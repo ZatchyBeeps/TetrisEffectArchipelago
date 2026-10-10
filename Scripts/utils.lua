@@ -48,6 +48,14 @@ EffectLevels = {
     [16] = 'Mystery'
 }
 
+---@enum MessageStyle
+MessageStyle = {
+    default = 0,
+    warning = 1,
+    error = 2,
+    info = 3
+}
+
 local QueuedTraps = {}
 QueuedDeathLink = false
 local TrapActive = false
@@ -86,6 +94,84 @@ end
 function PrettyPrint(message)
     print(message .. "\n")
 end
+
+-- ======================
+--Styles:
+--warn
+--error
+--info
+--player
+--location
+--filler
+--useful
+--priority
+--trap
+
+---@param message string
+---@param type MessageStyle
+function StylePrintToAll(message, type)
+    if type == MessageStyle.default then PrintToAll(message) return end
+    PrettyPrint(message)
+    if type == MessageStyle.warning then PrintToGame("<warn>" .. message .. "</>") 
+    elseif type == MessageStyle.error then PrintToGame("<error>" .. message .. "</>") 
+    elseif type == MessageStyle.info then PrintToGame("<info>" .. message .. "</>") end
+end
+
+---@param data {[integer]: {[string]: any}}
+function JsonPrint(data)
+    local ResultingMessage = ""
+    local ResPlainMessage = ""
+    for key, data_entry in pairs(data) do
+        local StringPart = nil
+        local player_num = nil
+        local flag = nil
+        local expect_item = false
+        local expect_location = false
+        local expect_player = false
+        --PrettyPrint("New table")
+
+        -- Parsing json data
+        for datatype, value in pairs(data_entry) do
+            if datatype == "text" then StringPart = value -- StringPart will usually contain ids if it's not plain text. They do have to be converted to numbers
+            elseif datatype == "player" then player_num = value -- number
+            elseif datatype == "type" and value == "player_id" then expect_player = true
+            elseif datatype == "type" and value == "item_id" then expect_item = true
+            elseif datatype == "type" and value == "location_id" then expect_location = true
+            elseif datatype == "flags" then flag = value end -- number
+        end
+
+        -- Constructing the message
+        -- Couple extra lines but we use ResPlainMessage to print to the console without style tags
+        -- Why? Yeah! 
+        -- ... I'd rather see them without the tags
+        if expect_item then
+            local item_n = nil
+            item_n = ap:get_item_name(tonumber(StringPart), ap:get_player_game(player_num))
+            ResPlainMessage = ResPlainMessage .. item_n
+            if flag == 1 then StringPart = "<priority>" .. item_n .. "</>"
+            elseif flag == 2 then StringPart = "<useful>" .. item_n .. "</>"
+            elseif flag == 0 then StringPart = "<filler>" .. item_n .. "</>"
+            elseif flag == 4 then StringPart = "<trap>" .. item_n .. "</>" end
+        elseif expect_location then
+            local location_n = ap:get_location_name(tonumber(StringPart), ap:get_player_game(player_num))
+            ResPlainMessage = ResPlainMessage .. location_n
+            StringPart = "<location>" .. location_n .. "</>"
+        elseif expect_player then
+            local player_n = ap:get_player_alias(tonumber(StringPart))
+            ResPlainMessage = ResPlainMessage .. player_n
+            StringPart = "<player>" .. player_n .. "</>"
+        else
+            ResPlainMessage = ResPlainMessage .. StringPart
+        end
+
+        -- And then just add it to the string
+        ResultingMessage = ResultingMessage .. StringPart
+    end
+    PrettyPrint(ResPlainMessage)
+    PrintToGame(ResultingMessage)
+end
+
+-- ======================
 
 function Helper_OnDisconnect()
     ExecuteInGameThread(function()
@@ -172,7 +258,7 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         PManager:SetBrokenMinoEnable(true, math.random())
         ExecuteWithDelay(15000, function ()
-            PrintToAll("The Broken Mino Trap has expired...")
+            StylePrintToAll("The Broken Mino Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then PManager:SetBrokenMinoEnable(false, 0) end
         end)
@@ -190,7 +276,7 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         PManager:ForbidHold(true)
         ExecuteWithDelay(30000, function ()
-            PrintToAll("The Hold Trap has expired...")
+            StylePrintToAll("The Hold Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then PManager:ForbidHold(false) end
         end)
@@ -210,7 +296,7 @@ TrapList = {
         PManager.GamePlayerPawns[1].ForceInvisibleNextMino = true
         ExecuteWithDelay(30000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false -- Even after a game over, I don't think the game manager restarts itself. In fact, I had to do this instead of getting the pawn because it doesn't destroy the previous ones lol
-            PrintToAll("The Queue Trap has expired...")
+            StylePrintToAll("The Queue Trap has expired...", MessageStyle.info)
             TrapActive = false
         end)
     end,
@@ -224,7 +310,7 @@ TrapList = {
         PManager:SetExtendedPlacementFreeTime(0.24, false)
         ExecuteWithDelay(7000, function ()
             
-            PrintToAll("The Speed Trap has expired...")
+            StylePrintToAll("The Speed Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then
                 PManager:SetDifficultyLevel(OgSpeed, false)
@@ -239,7 +325,7 @@ TrapList = {
         PManager.GamePlayerPawns[1].ForceInvisibleGhost = true
         ExecuteWithDelay(30000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleGhost = false
-            PrintToAll("The Ghost Piece Trap has expired...")
+            StylePrintToAll("The Ghost Piece Trap has expired...", MessageStyle.info)
             TrapActive = false
         end)
     end
@@ -264,7 +350,7 @@ function PerformTrap()
         local Trap = TrapList[QueuedTraps[SelectedTrap]]
         if Trap ~= nil then
             TrapActive = true
-            PrintToAll(string.format("!!! Trap triggered! %s", QueuedTraps[SelectedTrap]))
+            StylePrintToAll(string.format("!!! Trap triggered! %s", QueuedTraps[SelectedTrap]), MessageStyle.warning)
             table.remove(QueuedTraps, SelectedTrap)
             Trap()
             

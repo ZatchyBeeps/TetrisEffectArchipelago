@@ -5,6 +5,7 @@ UEHelpers = require("UEHelpers")
 require("utils")
 require("archipelago")
 local modHelper = nil
+local ModVersion = "V0.2.0"
 
 local ZenStoryByAreas = false
 local firstRun = true
@@ -116,7 +117,7 @@ function HookFunctions()
                     end
                 end)
                 -- Somewhat prevents weird behaviours with the cursor thing being off screen breaking the stage selection until you'd went back to the difficulty select
-                ExecuteWithDelay(50, function()
+                ExecuteWithDelay(75, function()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
                     ZenStoryManager:ResetAreaPosition(StageIndexToAreaIndex(LastLevelUnlocked) or 4)
@@ -256,6 +257,7 @@ function HookFunctions()
             modHelper = FindFirstOf("ModActor_C")
             if modHelper:IsValid() then
                 modHelper:CreateAPMenu()
+                modHelper:SetModVersion(ModVersion)
             end
         end)
         --ExecuteWithDelay(5000, function ()        -- To-do: Remove the button from the array UserWidget.ButtonBases
@@ -300,6 +302,10 @@ end
 RegisterKeyBind(Key.F7, function()
 	--debug_GiveAll()
     --FindFirstOf("Actor_Menu_Top_C").UserWidget.Multiplay.LocationBoxs = nil
+    StylePrintToAll("Hi this is a test", MessageStyle.default)
+    StylePrintToAll("This is a warning", MessageStyle.warning)
+    StylePrintToAll("This is an error", MessageStyle.error)
+    StylePrintToAll("This is information", MessageStyle.info)
 end)
 
 
