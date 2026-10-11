@@ -78,8 +78,12 @@ end
 function APCheckRank(Score, Stage, Difficulty, IsEffect)
     if ap == nil then return end
     if IsEffect == nil or not IsEffect then
-        if Difficulty == 0 then return end
+        if Difficulty == 0 then
+            PrettyPrint("Refused rank checking due to difficulty being 0")
+            return
+        end
         local CurrentRank = RequestRank(Score, Stage, Difficulty)
+        PrettyPrint("RequestRank reported " .. tostring(#CurrentRank) .. " obtained ranks")
         local StageName = ZenLevels[Stage]
         for _, value in ipairs(CurrentRank) do
             local item_name = string.format("%s: %s Rank", StageName, value)
@@ -607,8 +611,12 @@ function DeathLinkPlayer()
 end
 
 function LockZone()
+    PrettyPrint("Reporting zone lock to " .. tostring(ZoneUnlocked))
     local PManager = FindFirstOf("TPPuzzleManager_C")
-    if PManager == nil or not PManager:IsValid() then return end
+    if PManager == nil or not PManager:IsValid() then
+        StylePrintToAll("Error! Zone lock failed. Report this issue if it happens again (PuzzleManager was nil)", MessageStyle.error)
+        return
+    end
     PManager:EnableZenLevel(ZoneUnlocked)
 end
 

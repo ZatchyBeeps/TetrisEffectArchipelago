@@ -12,11 +12,15 @@ local firstRun = true
 local Ready = false
 local CurrentScore = 0
 local AccumulatedScore = 0
+local AccumulatedAreaScore = 0
 local CurrentStage = 0
+local LastStageAreaIndex = -1
+local LastPlayedStage = -1
 local CurrentDifficulty = 0
 local OnEffectMode = false
 local ShouldRecheckZone = true
 local GameOveredByBlockage = false
+local PlayedLevels = {}
 
 
 function HookFunctions()
@@ -143,10 +147,13 @@ function HookFunctions()
                 PrettyPrint(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
+            LastPlayedStage = ResIndex
+            LastStageAreaIndex = StageIndexToAreaIndex(ResIndex)
             APClearStage(ResIndex, false)
             PrettyPrint(tostring(ResIndex))
             if not APZenIsStageUnlocked(ResIndex + 1) then
                 GameOveredByBlockage = true
+
                 -- We wait a bit, but not too much!, so it's not an abrupt game over
                 ExecuteWithDelay(1500, function()
                     FindFirstOf("TPGamePlayManager_C"):CreateGameResult(true)
@@ -161,10 +168,26 @@ function HookFunctions()
                     end)
                 end)
             else
-                AccumulatedScore = GetGameScore()
+                -- Reset the current score counter and set that we are on a diffent stage    
                 CurrentScore = 0
+                -- If the next stage is located in the next area, GetGameScore returns the area score, so we wanna clear the accumulated score
+                if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage + 1) then
+                    AccumulatedScore = 0
+                else
+                    table.insert(PlayedLevels, CurrentStage)
+                end
                 CurrentStage = ResIndex + 1
+                
             end
+            
+            -- Save current game score. Will be used later if the player goes to a different stage of this area or resets it otherwise (or replaying the same level)
+            if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage + 1) then
+                AccumulatedScore = 0
+            else
+                table.insert(PlayedLevels, CurrentStage)
+                AccumulatedScore = GetGameScore()
+            end
+            
         end)
     end)
 
@@ -185,6 +208,7 @@ function HookFunctions()
 
     NotifyOnNewObject("/Game/BluePrints/Game/TPGamePlayerPawn.TPGamePlayerPawn_C", function ()
         LockZone()
+        CurrentStage = -1 -- Prevents score stacking if the player retries/tops out
     end)
 
     -- On drop any tetrimino
@@ -218,12 +242,22 @@ function HookFunctions()
                 end
                 PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
                 
+                if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
+                    PrettyPrint("Reset to accumulated score")
+                    AccumulatedScore = 0
+                    PlayedLevels = {}
+                else
+                    PrettyPrint("Adding score of last stage since we are on the same area")
+                    AccumulatedAreaScore = AccumulatedScore
+                    AccumulatedScore = 0
+                end
+                
             end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
-            if CurrentStage ~= 26 then APSendAreaRankChecks(GetGameScore(), StageIndexToAreaIndex(CurrentStage), CurrentDifficulty) end
+            if CurrentStage ~= 26 then APSendAreaRankChecks(GetGameScore() + AccumulatedAreaScore, StageIndexToAreaIndex(CurrentStage), CurrentDifficulty) end
             APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get())
             PerformTrap()
         end)
@@ -349,6 +383,13 @@ end
 
 function OnZenMenuOpen()
     PrettyPrint("Zen menu has been opened")
+end
+
+function IsLevelPlayed(stage)
+    for index, value in ipairs(PlayedLevels) do
+        if stage == value then return true end
+    end
+    return false
 end
 
 RegisterInitGameStatePostHook(function(Context)

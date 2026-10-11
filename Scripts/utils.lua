@@ -198,7 +198,8 @@ function DisableBasicButton(button)
     end
 end
 
-
+---Gets the game score of the *current* area
+---@return integer
 function GetGameScore()
     ---@type ATPPuzzleManager_C
     manager = FindFirstOf("TPPuzzleManager_C")
@@ -210,6 +211,7 @@ function GetGameScore()
             return value
         end
     end
+    return 0
 end
 
 function StageIndexToAreaIndex(StageNum)
