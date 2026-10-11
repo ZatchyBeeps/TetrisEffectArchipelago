@@ -11,33 +11,28 @@ local modVersion = { 0, 0, 1 }
 local items_handling = APCli.Permission.AUTO_ENABLED
 local message_format = APCli.RenderFormat.ANSI
 
----@type APClient
-ap = nil
----@type table
-GameOptions = nil
-slotData = nil
-isGameCompleted = false
-itemList = {}
-checkedLocations = {}
-LocationsToCheck = {}
-server = nil
-slot = nil
-password = nil
-isDeathLink = false
-DeathLinkType = 0
-ZenStoryByAreas = false
-EffectModeEnabled = false
-ExcludedModes = {}
-RanksanityEnabled = false
-ZoneUnlocked = true
-LevelsToComplete = 0
-LastStage = 0
-StagesCompleted = 0
+
+ap = nil ---@type APClient Current Archipelago instance
+GameOptions = nil ---@type table Complete list of game options obatined from the multiworld
+isGameCompleted = false -- Is the game completed?
+checkedLocations = {} ---@type {[integer]: boolean} Contains all locations confirmed as released on the multiworld
+LocationsToCheck = {} ---@type integer[] Locations to be checked in the next ap poll loop
+server = nil ---@type string Server from the last connection of the session. Includes port
+slot = nil ---@type string Slot from the last connection of the session
+password = nil ---@type string Password from the last connection of the session
+isDeathLink = false -- Specifies if death link is enabled
+DeathLinkType = 0 -- What type of death link was given by the multiworld
+ZenStoryByAreas = false -- Specifies if the stage unlocking is by areas or by individual stages
+EffectModeEnabled = false -- Specifies if the Effect modes are included
+ExcludedModes = {} ---@type string[] Effect modes excluded in the multiworld
+RanksanityEnabled = false --Specifies if ranksanity is enabled
+ZoneUnlocked = true -- Specifies if the player is able to use their zone
+LevelsToComplete = 0 -- Total amount of levels for the player to access the goal area
+StagesCompleted = 0 -- Total stages completed of this randomizer
 
 local UnlockedZenLevels = MakeSet(26)
 local UnlockedEffectLevels = MakeSet(16)
 local UnlockedGroups = MakeSet(10)
-local RequiresVerify = false
 
 local TSpinNum = 0
 local BackToBackNum = 0
@@ -46,28 +41,41 @@ local TetrisNum = 0
 local IsFirstConnection = false
 
 
+---Checks if the given Effect mode has been unlocked
+---@param levelIndex integer
+---@return boolean
 function APOasisIsLevelUnlocked(levelIndex)
-    if not UnlockedEffectLevels[levelIndex] then
-        return true
-    end
+    if not UnlockedEffectLevels[levelIndex] then return true end
     return false
 end
 
+
+
+---Checks if the given area is unlocked
+---@param areaIndex integer
+---@return boolean
 function APZenIsAreaUnlocked(areaIndex)
     if not UnlockedGroups[areaIndex] then return false end
     return true
 end
 
+
+---Checks if the given stage is unlocked
+---@param stageIndex integer
+---@return boolean
 function APZenIsStageUnlocked(stageIndex)
     --print(tostring(stageIndex))
     if stageIndex == 26 then
         PrettyPrint("Metamorphosis is checking access rule: " .. tostring(LevelsToComplete) .. " with " .. tostring(StagesCompleted) .. " levels cleared")
         if StagesCompleted < LevelsToComplete or not UnlockedZenLevels[26] then return false end
+        PrettyPrint("Metamorphosis has been unlocked!")
         return true
     end
     if stageIndex > 26 then return true end
     return UnlockedZenLevels[stageIndex]
 end
+
+
 
 ---Sends all rank locations from the given Stage based on the score given and the game's current difficulty.
 ---Alternatively, it sends rank locations from the effect mode index given as Stage, based on a given rank value on Score if IsEffect is set to true
@@ -83,17 +91,15 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             return
         end
         local CurrentRank = RequestRank(Score, Stage, Difficulty)
-        PrettyPrint("RequestRank reported " .. tostring(#CurrentRank) .. " obtained ranks")
+        --PrettyPrint("RequestRank reported " .. tostring(#CurrentRank) .. " obtained ranks")
         local StageName = ZenLevels[Stage]
         for _, value in ipairs(CurrentRank) do
             local item_name = string.format("%s: %s Rank", StageName, value)
             local item_id = ap:get_location_id(item_name)
             if item_id ~= nil then
                 SendLocation(item_id)
-            else PrettyPrint("Attempted to send location but it was not found. Item: " .. item_name)
-            end
+            else PrettyPrint("Attempted to send location but it was not found. Item: " .. item_name) end
         end
-
     else
         local StageName = nil
         if Stage == 17 then -- Obtain which Playlist mode are we playing, or QuickPlay if we aren't
@@ -101,11 +107,10 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
             local StageManager = FindFirstOf("TPStageManager_C")
             if StageManager ~= nil then
                 local IsQuickPlay = false
-
                 local res = {}
                 StageManager.ModeBehavior:IsQuickPlay(res)
                 for _, value in ipairs(res) do IsQuickPlay = value end
-
+                
                 if not IsQuickPlay then StageName = EffectLevels[8 + StageManager.ModeBehavior.PlayListKind]
                 else StageName = EffectLevels[7] end
             end
@@ -125,6 +130,12 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
     --print(CurrentRank)
 end
 
+
+
+---Sends all ranks from the given area based on the score and difficulty given
+---@param Score integer
+---@param Area integer
+---@param Difficulty integer
 function APSendAreaRankChecks(Score, Area, Difficulty)
     if Difficulty == 0 then return end
         for _, Rank in ipairs(RequestAreaRank(Score, Area, Difficulty)) do
@@ -137,6 +148,11 @@ function APSendAreaRankChecks(Score, Area, Difficulty)
         end
 end
 
+
+
+---Sets the given stage or mode index as cleared and sends it's corresponding location
+---@param Stage integer
+---@param IsEffect boolean Set to true if the stage index is an effect mode
 function APClearStage(Stage, IsEffect)
     if Stage == 26 then GameGoal() end
     if IsEffect == nil or not IsEffect then
@@ -150,6 +166,14 @@ function APClearStage(Stage, IsEffect)
     if item_id ~= nil then SendLocation(item_id) else PrintToAll("Error! Couldn't send stage clear!") end
 end
 
+
+
+---Calculates and sends trick locations with the given paramaters as a state update 
+---@param LinesCleared integer Amount of lines cleared
+---@param TSpinType integer 0 means no t spin, 1 means mini t spin, 2 means normal t spin
+---@param ComboAmount integer Combo amount, if any
+---@param WasB2B boolean Did we got a back to back action?
+---@param WasAllClear boolean Did this action resulted in an all clear?
 function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear)
     if LinesCleared == 4 then TetrisNum = TetrisNum + 1 end
     if TSpinType ~= 0 then TSpinNum = TSpinNum + 1 end
@@ -158,8 +182,6 @@ function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllCle
     if WasAllClear then SendNext(ap:get_location_id("Made 1 all clear")) end
     if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
     if TSpinType == 2 and LinesCleared == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
-    
-
     if TetrisNum >= 15 then
         SendNext(ap:get_location_id("Made 15 Tetris line clears"))
         TetrisNum = 0
@@ -178,6 +200,9 @@ function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllCle
     end
 end
 
+
+--- Sends zone-related trick locations checks based on the provided amount of lines cleared
+--- @param LinesCleared integer Amount of lines cleared on zone
 function APSendZoneChecks(LinesCleared)
     if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
     elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodecatris"))
@@ -188,12 +213,17 @@ function APSendZoneChecks(LinesCleared)
     end
 end
 
+
+
+-- Sends a deathlink to the multiworld from this player
 function APSendDeathLink()
     if ap ~= nil and isDeathLink then
         --PrintToAll("You topped out! Sending death link...")
         ap:Bounce({ cause = "", source = slot, time = os.time(os.date("!*t")) }, nil, nil, {"DeathLink"})
     end
 end
+
+
 
 function Connect(_server, _slot, _password)
     server = _server
@@ -204,13 +234,13 @@ function Connect(_server, _slot, _password)
         PrettyPrint("[Archipelago] Socket connected succesfully")
     end
 
+    ---@param reason string
     function OnSocketError(reason)
         StylePrintToAll("[Archipelago] An error ocurred connecting socket: " .. tostring(reason), MessageStyle.warning)
     end
 
     function OnSocketDisconnected()
         StylePrintToAll("[Archipelago] Connection to archipelago was lost. Reconnecting...", MessageStyle.error)
-        itemList = {}
     end
 
     function HandleRoomInfo()
@@ -218,6 +248,7 @@ function Connect(_server, _slot, _password)
         ap:ConnectSlot(slot, password, items_handling, { "Lua-APClientPP" }, APVersion)
     end
 
+    ---@param RSlotData {[string]: any}
     function OnSlotConnect(RSlotData)
         StylePrintToAll("[Archipelago] Slot succesfully connected", MessageStyle.info)
         IsFirstConnection = true
@@ -258,6 +289,7 @@ function Connect(_server, _slot, _password)
         -- To-do,Call for lock items here
     end
 
+    ---@param reasons string[]
     function OnSlotRefused(reasons)
         StylePrintToAll("Slot has refused connection. Reason: " .. table.concat(reasons, ", "), MessageStyle.error)
         Helper_OnDisconnect()
@@ -272,6 +304,7 @@ function Connect(_server, _slot, _password)
         if IsFirstConnection then IsFirstConnection = false end
     end
 
+    ---@param locationInfos NetworkItem[]
     function on_location_info(locationInfos)
         for _, info in ipairs(locationInfos) do
             local itemname = ap:get_item_name(info.item, ap:get_player_game(info.player))
@@ -280,6 +313,7 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param locations integer[]
     function on_location_checked(locations)
         --PrintToAll("Locations checked:" .. table.concat(locations, ", "))
         --print("Checked locations: " .. table.concat(ap.checked_locations, ", "))
@@ -288,8 +322,9 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param location_id integer
     function CheckLocation(location_id)
-        local name = ap:get_location_name(location_id, nil)
+        local name = ap:get_location_name(location_id, ap:get_game())
         if name ~= nil then
             checkedLocations[location_id] = true
             if string.find(name, "Cleared") then
@@ -299,18 +334,24 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param data_package {[string]: any}
     function on_data_package_changed(data_package)
         PrettyPrint("[Archipelago] Data package changed:")
         if IsFirstConnection then PrintToAll("WARNING: Data package has changed on first connection. If this is the first time you've connected to the server please reconnect or restart your game as your starting items might not have been loaded correctly.") end
-        PrettyPrint(table.concat(data_package, ", "))
+        for key, value in pairs(data_package) do
+            PrettyPrint(key)
+            PrettyPrint(tostring(value))
+        end
+        PrettyPrint("[Archipelago] Data table end")
     end
 
+    ---@param msg string
     function on_print(msg)
         PrintToAll(msg)
     end
 
     ---@param msg {[integer]: {[string]: any}}
-    ---@param extra {[string]: any}
+    ---@param extra {[string]: any} Command
     function on_print_json(msg, extra)
         if #msg == 1 then
             PrintToAll(ap:render_json(msg, APCli.RenderFormat.ANSI))
@@ -319,6 +360,7 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param bounce {[string]: any}
     function on_bounced(bounce)
         PrettyPrint("[Archipelago] Bounced:")
         for k, v in pairs(bounce) do
@@ -335,6 +377,9 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param map {[string]: any}
+    ---@param keys string[]
+    ---@param extra {[string]: any}
     function on_retrieved(map, keys, extra)
         PrettyPrint("[Archipelago] Retrieved:")
         for _, key in ipairs(keys) do
@@ -346,6 +391,7 @@ function Connect(_server, _slot, _password)
         end
     end
 
+    ---@param message {[string]:any}
     function on_set_reply(message)
         PrettyPrint("[Archipelago] Set Reply:")
         for key, value in pairs(message) do
@@ -359,7 +405,7 @@ function Connect(_server, _slot, _password)
     end
 
     local uuid = ""
-    ap = APCli(uuid, GameName, server)
+    ap = APCli(uuid, GameName, server) ---@type APClient
     PrintToAll("Connecting to " .. server .. " as " .. slot)
 
     ap:set_socket_connected_handler(OnSocketConnected)
@@ -378,6 +424,8 @@ function Connect(_server, _slot, _password)
     ap:set_retrieved_handler(on_retrieved)
     ap:set_set_reply_handler(on_set_reply)
 end
+
+
 
 function connectToAp(host, slot, password)
     ExecuteAsync(function()
@@ -408,6 +456,8 @@ function connectToAp(host, slot, password)
     end)
 end
 
+
+
 function disconnect()
     if ap == nil then return end
     checkedLocations = {}
@@ -428,6 +478,8 @@ function disconnect()
     PrintToAll("Disconnected from archipelago")
 end
 
+
+
 function debug_GiveAll()
     for key, _ in pairs(UnlockedZenLevels) do
         UnlockedZenLevels[key] = true
@@ -437,6 +489,9 @@ function debug_GiveAll()
     end
 end
 
+
+
+-- Contains all stages and provides their in-game index
 ZenLevelItems = {
     ['The Deep Unlock'] = 0,
     ['Pharaoh\'s Code Unlock'] = 1,
@@ -467,6 +522,9 @@ ZenLevelItems = {
     ['Metamorphosis Unlock'] = 26
 }
 
+
+
+-- Contains Effect modes and their indexes
 EffectLevelItems = {
     ['Effect: Marathon Mode Unlock'] = 0,
     ['Effect: Zone Marathon Mode Unlock'] = 1,
@@ -487,6 +545,9 @@ EffectLevelItems = {
     ['Effect: Mystery Mode Unlock'] = 16
 }
 
+
+
+-- Contains, based on the unlock name, a table of stage/mode indexes that belong to that group
 AreaItems = {
     ['Area 1 Unlock'] = { 0, 1, 2 },
     ['Area 2 Unlock'] = { 3, 4, 5, 6 },
@@ -502,10 +563,11 @@ AreaItems = {
 }
 
 
+
 ---Validates the item name given and makes it available to the player
 ---@param item_name string
 function ParseItem(item_name)
-
+    -- Parse unlocks
     if string.find(item_name, "Unlock") ~= nil then
         if ZenStoryByAreas then
             if AreaItems[item_name] ~= nil then
@@ -538,13 +600,19 @@ function ParseItem(item_name)
             LockZone() -- Should enable it back mid game
         end
         PrettyPrint("[Item Parsing] Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+    
+    -- Parse traps
     elseif string.find(item_name, "Trap") ~= nil and not IsFirstConnection then
         QueueTrap(item_name)
         PrettyPrint("[Item Parsing] The trap " .. item_name .. " has been queued.")
+    
+    -- Parse fillers and other
     else
         PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
+
+
 
 ---Checks if the given mode is excluded in the multiworld
 ---@param effect_mode string
@@ -567,6 +635,8 @@ function SendLocation(ID)
     table.insert(LocationsToCheck, ID)
 end
 
+
+
 ---Sends the next location available from the given location ID as a base. Intended for the trick locations
 ---@param BaseLocationID integer
 function SendNext(BaseLocationID)
@@ -583,6 +653,9 @@ function SendNext(BaseLocationID)
     end
 end
 
+
+
+---Performs DeathLink on the player if received one
 function DeathLinkPlayer()
     PrettyPrint("Trying to deathlink player")
     isDeathLink = false
@@ -610,6 +683,9 @@ function DeathLinkPlayer()
     end)
 end
 
+
+
+-- Sets EnableZenLevel to the reported isZoneUnlocked status
 function LockZone()
     PrettyPrint("Reporting zone lock to " .. tostring(ZoneUnlocked))
     local PManager = FindFirstOf("TPPuzzleManager_C")
@@ -620,6 +696,9 @@ function LockZone()
     PManager:EnableZenLevel(ZoneUnlocked)
 end
 
+
+
+-- Makes the player goal when called
 function GameGoal()
     LoopAsync(1000, function ()
         PrettyPrint("Attempting to make player goal")

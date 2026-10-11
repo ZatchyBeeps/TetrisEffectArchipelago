@@ -62,6 +62,7 @@ function HookFunctions()
     RegisterHook(
         "/Game/BluePrints/Menu/ZenStory/Actor/ActorMenuZenStoryStageSelect.ActorMenuZenStoryStageSelect_C:InitializeController",
         function(self)
+            PrettyPrint("Zen menu has been opened")
             if ap == nil then PrintToAll("Warning! You haven't connected to archipelago yet! All stages are locked by default, so go back to the main menu and connect to a multiworld") end
             CurrentStage = -1
             -- Unlike Oasis, we don't wanna be too fast as the game will be activating the stage actors after selecting a difficulty
@@ -121,7 +122,7 @@ function HookFunctions()
                     end
                 end)
                 -- Somewhat prevents weird behaviours with the cursor thing being off screen breaking the stage selection until you'd went back to the difficulty select
-                ExecuteWithDelay(75, function()
+                ExecuteWithDelay(100, function()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
                     ZenStoryManager:ResetAreaPosition(StageIndexToAreaIndex(LastLevelUnlocked) or 4)
@@ -132,11 +133,9 @@ function HookFunctions()
     -- Zen story stage end
     -- This is maybe not the best method to hook to for when the stage ends, but it's the only one I could reliably use and it does the job well
     RegisterHook("/Game/BluePrints/Game/Interlude/TPInterludeBG.TPInterludeBG_C:SetupMesh", function(self)
-        --print("Stage has ended")
+        PrettyPrint("Stage has ended")
         if ap == nil or OnEffectMode then return end
-        
         local ae = {}
-
 
         ExecuteInGameThread(function()
             local StageIndex = {}
@@ -144,13 +143,13 @@ function HookFunctions()
 
             FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
             for index, value in pairs(StageIndex) do
-                PrettyPrint(tostring(index) .. " " .. tostring(value))
+                --PrettyPrint(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
             LastPlayedStage = ResIndex
             LastStageAreaIndex = StageIndexToAreaIndex(ResIndex)
             APClearStage(ResIndex, false)
-            PrettyPrint(tostring(ResIndex))
+            --PrettyPrint(tostring(ResIndex))
             if not APZenIsStageUnlocked(ResIndex + 1) then
                 GameOveredByBlockage = true
 
@@ -195,6 +194,7 @@ function HookFunctions()
     -- On area ending or oasis mode completed
     RegisterHook("/Game/BluePrints/Menu/Result/Actor/ActorResultScore.ActorResultScore_C:OnShowRank",
     function(self)
+        PrettyPrint("Ended Oasis mode")
         ---@type AActorResultScore_C
         ResultActor = self:get()
         ObtainedRank = ResultActor.RankType
@@ -207,8 +207,11 @@ function HookFunctions()
     end)
 
     NotifyOnNewObject("/Game/BluePrints/Game/TPGamePlayerPawn.TPGamePlayerPawn_C", function ()
+        PrettyPrint("========================================")
+        PrettyPrint("Begin stage")
         LockZone()
         CurrentStage = -1 -- Prevents score stacking if the player retries/tops out
+        
     end)
 
     -- On drop any tetrimino
@@ -240,7 +243,7 @@ function HookFunctions()
                     CurrentDifficulty = StageManager.ModeBehavior.Difficulty
                     if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
                 end
-                PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. tostring(CurrentDifficulty))
+                PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. ":" .. tostring(CurrentDifficulty))
                 
                 if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
                     PrettyPrint("Reset to accumulated score")
@@ -307,7 +310,7 @@ function HookFunctions()
     end)
 
 
-    RegisterHook("/Game/BluePrints/Menu/Option/Actor/ActorMenuOptionGame.ActorMenuOptionGame_C:InitializeWidget", 
+    RegisterHook("/Game/BluePrints/Menu/Option/Actor/ActorMenuOptionGame.ActorMenuOptionGame_C:InitializeWidget",
     function (self)
         ---@type UMenu_OptionGameWidget_C
         local opt_widget = self:get().UserWidget

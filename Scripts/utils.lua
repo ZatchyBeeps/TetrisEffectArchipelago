@@ -1,3 +1,4 @@
+-- Retrieves the name of a level based on stage index
 ZenLevels = {
     [ 0] = 'The Deep',
     [ 1] = 'Pharaoh\'s Code',
@@ -28,6 +29,7 @@ ZenLevels = {
     [26] = 'Metamorphosis'
 }
 
+-- Retrieves the name of an Effect mode based on mode index
 EffectLevels = {
     [ 0] = 'Marathon',
     [ 1] = 'Zone Marathon',
@@ -170,8 +172,8 @@ function JsonPrint(data)
     PrettyPrint(ResPlainMessage)
     PrintToGame(ResultingMessage)
 end
-
 -- ======================
+
 
 function Helper_OnDisconnect()
     ExecuteInGameThread(function()
@@ -191,14 +193,7 @@ function Helper_OnConnected()
     end)
 end
 
-function DisableBasicButton(button)
-    modHelper = FindFirstOf("ModActor_C")
-    if modHelper:IsValid() then
-        modHelper:DisableButton(button)
-    end
-end
-
----Gets the game score of the *current* area
+---Gets the game score of the **current** area
 ---@return integer
 function GetGameScore()
     ---@type ATPPuzzleManager_C
@@ -214,6 +209,9 @@ function GetGameScore()
     return 0
 end
 
+---Returns the area that this stage belongs to
+---@param StageNum integer
+---@return integer
 function StageIndexToAreaIndex(StageNum)
     if StageNum >= 0 and StageNum < 3 then return 1
     elseif StageNum >= 3 and StageNum < 7 then return 2
@@ -223,7 +221,7 @@ function StageIndexToAreaIndex(StageNum)
     elseif StageNum >= 21 and StageNum < 26 then return 6
     elseif StageNum >= 26 then return 7
     end
-    return nil
+    return 0
 end
 
 function QueueTrap(trap_name)
@@ -234,6 +232,7 @@ function QueueTrap(trap_name)
     table.insert(QueuedTraps, trap_name)
 end
 
+---Contains a list of functions based on the trap name. The function performs said trap
 ---@type {[string]: fun()}
 TrapList = {
     ["Lines Trap"] = function()
@@ -373,6 +372,10 @@ ScoreRankType = {
     [6] = "SS"
 }
 
+---Returns a string table with all ranks obtained up to the specified rank type index.
+---@param ScoreRankTypeIndex integer
+---@return string[]
+---@see ScoreRankType
 function GetObtainedRanks(ScoreRankTypeIndex)
     local ResultRanks = {}
     for index, rank in pairs(ScoreRankType) do
@@ -407,6 +410,7 @@ GameResultType = {
     [20] = "Classic Score Attack"
 }
 
+-- Use with a GameResultType index to convert it into it's EffectLevels mode index. Gives -1 on non-effect modes
 GameResultToModeID =
 {
     [1] = 0,
