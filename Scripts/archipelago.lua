@@ -154,12 +154,28 @@ end
 ---@param Stage integer
 ---@param IsEffect boolean Set to true if the stage index is an effect mode
 function APClearStage(Stage, IsEffect)
+    local item_name = ""
     if Stage == 26 then GameGoal() end
     if IsEffect == nil or not IsEffect then
-        StageName = ZenLevels[Stage]
+        local StageName = ZenLevels[Stage]
         item_name = string.format("%s Stage Cleared", StageName)
     else
-        StageName = EffectLevels[GameResultToModeID[Stage]]
+        local StageName = ""
+        if Stage == 17 then -- Obtain which Playlist mode are we playing, or QuickPlay if we aren't
+            ---@type ATPStageManager_C
+            local StageManager = FindFirstOf("TPStageManager_C")
+            if StageManager ~= nil then
+                local IsQuickPlay = false
+                local res = {}
+                StageManager.ModeBehavior:IsQuickPlay(res)
+                for _, value in ipairs(res) do IsQuickPlay = value end
+                
+                if not IsQuickPlay then StageName = EffectLevels[8 + StageManager.ModeBehavior.PlayListKind]
+                else StageName = EffectLevels[7] end
+            end
+        else
+            StageName = EffectLevels[GameResultToModeID[Stage]] -- Get the name if it's some other stage emode
+        end
         item_name = string.format("%s Mode Cleared", StageName)
     end
     item_id = ap:get_location_id(item_name)
