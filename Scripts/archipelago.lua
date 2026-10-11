@@ -193,27 +193,27 @@ end
 function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear)
     if LinesCleared == 4 then TetrisNum = TetrisNum + 1 end
     if TSpinType ~= 0 then TSpinNum = TSpinNum + 1 end
-    if ComboAmount == 8 then SendNext(ap:get_location_id("Made an 8 line combo 1 times")) end
+    if ComboAmount == 4 then SendNext(ap:get_location_id("Made a 4 line combo 1 times")) end
     if WasB2B then BackToBackNum = BackToBackNum + 1 end
     if WasAllClear then SendNext(ap:get_location_id("Made 1 all clear")) end
-    if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
+    --if WasB2B and ComboAmount ~= 0 then BackToBackRen = BackToBackRen + 1 else BackToBackRen = 0 end
     if TSpinType == 2 and LinesCleared == 3 then SendNext(ap:get_location_id("Made 1 T-spin triple")) end
-    if TetrisNum >= 15 then
-        SendNext(ap:get_location_id("Made 15 Tetris line clears"))
+    if TetrisNum >= 6 then
+        SendNext(ap:get_location_id("Made 6 Tetris line clears"))
         TetrisNum = 0
     end
-    if TSpinNum >= 10 then
-        SendNext(ap:get_location_id("Made 10 T-Spins"))
+    if TSpinNum >= 4 then
+        SendNext(ap:get_location_id("Made 4 T-Spins"))
         TSpinNum = 0
     end
-    if BackToBackNum >= 10 then
-        SendNext(ap:get_location_id("Made 10 back-to-backs"))
+    if BackToBackNum >= 3 then
+        SendNext(ap:get_location_id("Made 3 back-to-backs"))
         BackToBackNum = 0
     end
-    if BackToBackRen >= 4 then
-        SendNext(ap:get_location_id("Made a 4-combo back-to-back 1 times"))
-        BackToBackRen = 0
-    end
+    --if BackToBackRen >= 4 then
+    --    SendNext(ap:get_location_id("Made a 4-combo back-to-back 1 times"))
+    --    BackToBackRen = 0
+    --end
 end
 
 
