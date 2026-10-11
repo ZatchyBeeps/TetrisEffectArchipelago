@@ -303,10 +303,16 @@ TrapList = {
         if PManager == nil or not PManager:IsValid() then return end
         local OgSpeed = PManager.DifficultyLevel
         local OgPlaceTime = PManager.ExtendedPlacementFreeTime
-        PManager:SetDifficultyLevel(20, false)
-        PManager:SetExtendedPlacementFreeTime(0.24, false)
+        local dif = GetDifficulty()
+        if dif == 0 then
+            PManager:SetDifficultyLevel(15, false)
+        elseif dif == 2 then
+            PManager:SetDifficultyLevel(20, false)
+        elseif dif == 3 then
+            PManager:SetDifficultyLevel(20, false)
+            PManager:SetExtendedPlacementFreeTime(0.29, false)
+        end
         ExecuteWithDelay(7000, function ()
-            
             StylePrintToAll("The Speed Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then
@@ -379,6 +385,17 @@ function GetObtainedRanks(ScoreRankTypeIndex)
         if index >= ScoreRankTypeIndex then return ResultRanks end
     end
     return ResultRanks
+end
+
+---Gets the current difficulty of the game or nil if not in game
+---@return integer?
+function GetDifficulty()
+    ---@type ATPStageManager_C
+    local StageManager = FindFirstOf("TPStageManager_C")
+    if StageManager ~= nil then
+        return StageManager.ModeBehavior.Difficulty
+    end
+    return nil
 end
 
 -- Use to represent and identify the oasis mode played like an EScoreRankType enumerator. Values are
