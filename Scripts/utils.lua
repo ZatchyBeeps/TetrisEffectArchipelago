@@ -225,10 +225,6 @@ function StageIndexToAreaIndex(StageNum)
 end
 
 function QueueTrap(trap_name)
-    if trap_name == "Ghost Piece Trap" then
-        PrettyPrint("Received a trap but it's not implemented yet")
-        return
-    end
     table.insert(QueuedTraps, trap_name)
 end
 
