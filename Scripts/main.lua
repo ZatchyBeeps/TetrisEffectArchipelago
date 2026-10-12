@@ -339,11 +339,10 @@ end
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
 	--debug_GiveAll()
-    --FindFirstOf("Actor_Menu_Top_C").UserWidget.Multiplay.LocationBoxs = nil
-    StylePrintToAll("Hi this is a test", MessageStyle.default)
-    StylePrintToAll("This is a warning", MessageStyle.warning)
-    StylePrintToAll("This is an error", MessageStyle.error)
-    StylePrintToAll("This is information", MessageStyle.info)
+    ---@type ATPPuzzleManager_C
+    local PManager = FindFirstOf("TPPuzzleManager_C")
+    if PManager == nil or not PManager:IsValid() then return end
+    PManager:ActiveMinoHold()
 end)
 
 

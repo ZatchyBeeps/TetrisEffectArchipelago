@@ -280,11 +280,12 @@ TrapList = {
         
     end,
     ["Swap Trap"] = function ()
-        ExecuteWithDelay(150, function ()
+        ExecuteWithDelay(200, function ()
             ---@type ATPPuzzleManager_C
             local PManager = FindFirstOf("TPPuzzleManager_C")
             if PManager == nil or not PManager:IsValid() then return end
-            PManager:SwapActiveAndHold()
+            PManager:ActiveMinoHold()
+            TrapActive = false
         end)
 
     end,
