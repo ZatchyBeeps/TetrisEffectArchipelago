@@ -126,6 +126,7 @@ function HookFunctions()
                     ZenStoryManager:SetCursorCurrentPosition(LastLevelUnlocked)
                     ZenStoryManager.FreeCursorStageIndex = LastLevelUnlocked
                     ZenStoryManager:ResetAreaPosition(StageIndexToAreaIndex(LastLevelUnlocked) or 4)
+                    ZenStoryManager:UpdateStagePosition(LastLevelUnlocked, false, true, true, true)
                 end)
             end)
         end)

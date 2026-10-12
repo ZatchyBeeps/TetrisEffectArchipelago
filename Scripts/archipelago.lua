@@ -39,7 +39,7 @@ local TSpinNum = 0
 local BackToBackNum = 0
 local BackToBackRen = 0
 local TetrisNum = 0
-local IsFirstConnection = false
+local IsFirstConnection = true
 
 
 ---Checks if the given Effect mode has been unlocked

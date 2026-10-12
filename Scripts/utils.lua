@@ -398,7 +398,8 @@ function GetDifficulty()
     ---@type ATPStageManager_C
     local StageManager = FindFirstOf("TPStageManager_C")
     if StageManager ~= nil then
-        return StageManager.ModeBehavior.Difficulty
+        local stage = StageManager.ModeBehavior.Difficulty
+        return stage
     end
     return nil
 end
