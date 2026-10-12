@@ -147,7 +147,7 @@ function HookFunctions()
                 --PrettyPrint(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
-            LastPlayedStage = ResIndex
+            table.insert(PlayedLevels, ResIndex)
             LastStageAreaIndex = StageIndexToAreaIndex(ResIndex)
             APClearStage(ResIndex, false)
             --PrettyPrint(tostring(ResIndex))
