@@ -26,9 +26,10 @@ ZenStoryByAreas = false -- Specifies if the stage unlocking is by areas or by in
 EffectModeEnabled = false -- Specifies if the Effect modes are included
 ExcludedModes = {} ---@type string[] Effect modes excluded in the multiworld
 RanksanityEnabled = false --Specifies if ranksanity is enabled
-ZoneUnlocked = true -- Specifies if the player is able to use their zone
+ZoneUnlocked = false -- Specifies if the player is able to use their zone
 LevelsToComplete = 0 -- Total amount of levels for the player to access the goal area
 StagesCompleted = 0 -- Total stages completed of this randomizer
+local GroupedZoneLocations = false
 
 local UnlockedZenLevels = MakeSet(26)
 local UnlockedEffectLevels = MakeSet(16)
@@ -220,12 +221,20 @@ end
 --- Sends zone-related trick locations checks based on the provided amount of lines cleared
 --- @param LinesCleared integer Amount of lines cleared on zone
 function APSendZoneChecks(LinesCleared)
-    if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
-    elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodecatris"))
-    elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
-    elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
-    elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
-    elseif LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris"))
+    if GroupedZoneLocations then
+        if LinesCleared >= 8 then SendNext(ap:get_location_id("Made 1 octotris")) end
+        if LinesCleared >= 12 then SendNext(ap:get_location_id("Made 1 dodecatris")) end
+        if LinesCleared >= 16 then SendNext(ap:get_location_id("Made 1 decahexatris")) end
+        if LinesCleared >= 18 then SendNext(ap:get_location_id("Made 1 perfectris")) end
+        if LinesCleared >= 20 then SendNext(ap:get_location_id("Made 1 ultimatris")) end
+        if LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris")) end
+    else
+        if LinesCleared >= 8 and LinesCleared < 12 then SendNext(ap:get_location_id("Made 1 octotris"))
+        elseif LinesCleared >= 12 and LinesCleared < 16 then SendNext(ap:get_location_id("Made 1 dodecatris"))
+        elseif LinesCleared >= 16 and LinesCleared < 18 then SendNext(ap:get_location_id("Made 1 decahexatris"))
+        elseif LinesCleared >= 18 and LinesCleared < 20 then SendNext(ap:get_location_id("Made 1 perfectris"))
+        elseif LinesCleared == 20 then SendNext(ap:get_location_id("Made 1 ultimatris"))
+        elseif LinesCleared >= 21 then SendNext(ap:get_location_id("Made 1 kirbtris")) end
     end
 end
 
@@ -291,11 +300,12 @@ function Connect(_server, _slot, _password)
 
         PrettyPrint("[Archipelago] [Room Info] Getting slot info")
         ZenStoryByAreas = GameOptions.unlock_method
-        EffectModeEnabled = GameOptions.is_include_effect
+        EffectModeEnabled = GameOptions.include_effect
         ExcludedModes = GameOptions.excluded_modes
-        RanksanityEnabled = GameOptions.is_ranksanity
-        ZoneUnlocked = GameOptions.is_start_zone == 1
+        RanksanityEnabled = GameOptions.enable_ranksanity
+        ZoneUnlocked = GameOptions.start_with_zone == 1
         LevelsToComplete = GameOptions.stages_required
+        GroupedZoneLocations = GameOptions.zone_locations_behaviour == 1
         PrettyPrint("[Archipelago] [Room Info] Requiring amount of stages: " .. tostring(LevelsToComplete))
 
         --ParseItemUnlocks()
