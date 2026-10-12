@@ -276,7 +276,7 @@ function Connect(_server, _slot, _password)
     ---@param RSlotData {[string]: any}
     function OnSlotConnect(RSlotData)
         StylePrintToAll("[Archipelago] Slot succesfully connected", MessageStyle.info)
-        IsFirstConnection = true
+
         --print("Locations checked are: " .. table.concat(ap.checked_locations, ", "))
         --print("Locations missing: " .. table.concat(ap.missing_locations, ", "))
         LocationsMissing = ap.missing_locations
@@ -311,8 +311,10 @@ function Connect(_server, _slot, _password)
         --ParseItemUnlocks()
         PrettyPrint("[Archipelago] [Room Info] Done")
         Helper_OnConnected()
-
-        -- To-do,Call for lock items here
+        
+        ExecuteWithDelay(2500, function ()
+            IsFirstConnection = false
+        end)
     end
 
     ---@param reasons string[]
@@ -327,7 +329,7 @@ function Connect(_server, _slot, _password)
         for _, item in ipairs(ItemsReceived) do
             ParseItem(ap:get_item_name(item.item, nil))
         end
-        if IsFirstConnection then IsFirstConnection = false end
+        --if IsFirstConnection then IsFirstConnection = false end
     end
 
     ---@param locationInfos NetworkItem[]
@@ -363,7 +365,7 @@ function Connect(_server, _slot, _password)
     ---@param data_package {[string]: any}
     function on_data_package_changed(data_package)
         PrettyPrint("[Archipelago] Data package changed:")
-        if IsFirstConnection then PrintToAll("WARNING: Data package has changed on first connection. If this is the first time you've connected to the server please reconnect or restart your game as your starting items might not have been loaded correctly.") end
+        if IsFirstConnection then RequestDataReset() end
         for key, value in pairs(data_package) do
             PrettyPrint(key)
             PrettyPrint(tostring(value))
@@ -729,5 +731,14 @@ function GameGoal()
     LoopAsync(1000, function ()
         PrettyPrint("Attempting to make player goal")
         return ap:StatusUpdate(ap.ClientStatus.GOAL)
+    end)
+end
+
+function RequestDataReset()
+    StylePrintToAll("Datapackage changed while connecting. The mod will reconnect to ensure data consistency.", MessageStyle.warning)
+    disconnect()
+    IsFirstConnection = true
+    ExecuteWithDelay(2000, function ()
+        connectToAp(server, slot, password)
     end)
 end
