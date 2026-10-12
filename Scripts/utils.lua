@@ -280,11 +280,13 @@ TrapList = {
         
     end,
     ["Swap Trap"] = function ()
-        ---@type ATPPuzzleManager_C
-        local PManager = FindFirstOf("TPPuzzleManager_C")
-        if PManager == nil or not PManager:IsValid() then return end
-        PManager:SwapActiveAndHold()
-        TrapActive = false
+        ExecuteWithDelay(150, function ()
+            ---@type ATPPuzzleManager_C
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then return end
+            PManager:SwapActiveAndHold()
+        end)
+
     end,
     ["Queue Trap"] = function()
         ---@type ATPGamePlayManager_C
@@ -304,6 +306,7 @@ TrapList = {
         local OgSpeed = PManager.DifficultyLevel
         local OgPlaceTime = PManager.ExtendedPlacementFreeTime
         local dif = GetDifficulty()
+        PrettyPrint("Beggining speed trap for difficulty " .. tostring(dif))
         if dif == 0 then
             PManager:SetDifficultyLevel(15, false)
         elseif dif == 2 then
@@ -311,6 +314,8 @@ TrapList = {
         elseif dif == 3 then
             PManager:SetDifficultyLevel(20, false)
             PManager:SetExtendedPlacementFreeTime(0.29, false)
+        else
+            PManager:SetDifficultyLevel(20, false)
         end
         ExecuteWithDelay(7000, function ()
             StylePrintToAll("The Speed Trap has expired...", MessageStyle.info)
