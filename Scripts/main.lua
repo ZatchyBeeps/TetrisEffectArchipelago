@@ -254,7 +254,7 @@ function HookFunctions()
                     AccumulatedAreaScore = AccumulatedScore
                     AccumulatedScore = 0
                 end
-                
+                LockZone()
             end
             -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
             -- Also check what are we on when doing this
