@@ -284,10 +284,10 @@ function Connect(_server, _slot, _password)
         for key, value in pairs(GameOptions) do
             PrettyPrint("[Archipelago] [Room Info] " .. key .. ": " .. tostring(value))
         end
-        PrettyPrint("[Archipelago] [Room Info] Getting locations")
-        for _, id in ipairs(ap.checked_locations) do
-            CheckLocation(id)
-        end
+        --PrettyPrint("[Archipelago] [Room Info] Getting locations")
+        --for _, id in ipairs(ap.checked_locations) do
+        --    CheckLocation(id)
+        --end
 
 
         PrettyPrint("[Archipelago] [Room Info] Enabling DeathLink")
