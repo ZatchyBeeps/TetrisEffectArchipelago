@@ -473,6 +473,10 @@ function connectToAp(host, slot, password)
                     PrettyPrint("Sending location id " .. tostring(value))
                     table.insert(ToSend, value)
                     checkedLocations[value] = true
+                    if string.find(ap:get_location_name(value, ap:get_game()), "Cleared") then
+                        StagesCompleted = StagesCompleted + 1
+                        PrettyPrint("Level has been cleared! Adding to the count...")
+                    end
                 end
                 ap:LocationChecks(ToSend)
                 LocationsToCheck = {}
