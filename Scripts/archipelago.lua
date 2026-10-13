@@ -648,6 +648,7 @@ function ParseItem(item_name)
                 return
             end
             PManager:AddScore(1000)
+            PrettyPrint("[Item Parsing] Added score bonus to player!")
         elseif item_name == "Zone charge bonus" and not IsFirstConnection then
             ---@type ATPPuzzleManager_C
             local PManager = FindFirstOf("TPPuzzleManager_C")
@@ -656,8 +657,10 @@ function ParseItem(item_name)
                 return
             end
             PManager:ZenLevelUp()
+            PrettyPrint("[Item Parsing] Increased zone gauge!")
+        else
+            PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
         end
-        PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
 
