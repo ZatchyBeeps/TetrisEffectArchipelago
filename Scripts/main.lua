@@ -169,10 +169,13 @@ function HookFunctions()
                     end)
                 end)
             else
+                PrettyPrint("Stage end. Next stage available")
+                PrettyPrint("========================================")
+                
                 -- Reset the current score counter and set that we are on a diffent stage    
                 CurrentScore = 0
-                CurrentStage = ResIndex + 1            
-                if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage + 1) then
+                CurrentStage = ResIndex + 1
+                if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage - 1) then
                     AccumulatedScore = 0
                     PrettyPrint("Next stage does not belong to the next area. Accumulated Score reset")
                 end
@@ -190,12 +193,12 @@ function HookFunctions()
     -- On area ending or oasis mode completed
     RegisterHook("/Game/BluePrints/Menu/Result/Actor/ActorResultScore.ActorResultScore_C:OnShowRank",
     function(self)
+        if self:get().GameResultType == 6 then return end
         PrettyPrint("Ended Oasis mode")
         ---@type AActorResultScore_C
         ResultActor = self:get()
         ObtainedRank = ResultActor.RankType
         GameMode = ResultActor.GameResultType
-        if GameMode == 6 then return end
         APCheckRank(ObtainedRank, GameMode, nil, true)
         if ObtainedRank >= 2 then -- The player must get at least a C rank to clear the mode
             APClearStage(GameMode, true)
