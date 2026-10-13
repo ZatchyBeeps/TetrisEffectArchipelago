@@ -254,7 +254,7 @@ TrapList = {
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager:SetBrokenMinoEnable(true, math.random())
-        ExecuteWithDelay(15000, function ()
+        ExecuteWithDelay(10000, function ()
             StylePrintToAll("The Broken Mino Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then PManager:SetBrokenMinoEnable(false, 0) end
@@ -272,7 +272,7 @@ TrapList = {
         local PManager = FindFirstOf("TPPuzzleManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager:ForbidHold(true)
-        ExecuteWithDelay(30000, function ()
+        ExecuteWithDelay(15000, function ()
             StylePrintToAll("The Hold Trap has expired...", MessageStyle.info)
             TrapActive = false
             if PManager:IsValid() then PManager:ForbidHold(false) end
@@ -280,7 +280,7 @@ TrapList = {
         
     end,
     ["Swap Trap"] = function ()
-        ExecuteWithDelay(200, function ()
+        ExecuteWithDelay(100, function ()
             ---@type ATPPuzzleManager_C
             local PManager = FindFirstOf("TPPuzzleManager_C")
             if PManager == nil or not PManager:IsValid() then return end
@@ -294,7 +294,7 @@ TrapList = {
         local PManager = FindFirstOf("TPGamePlayManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager.GamePlayerPawns[1].ForceInvisibleNextMino = true
-        ExecuteWithDelay(30000, function ()
+        ExecuteWithDelay(15000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleNextMino = false -- Even after a game over, I don't think the game manager restarts itself. In fact, I had to do this instead of getting the pawn because it doesn't destroy the previous ones lol
             StylePrintToAll("The Queue Trap has expired...", MessageStyle.info)
             TrapActive = false
@@ -332,7 +332,7 @@ TrapList = {
         local PManager = FindFirstOf("TPGamePlayManager_C")
         if PManager == nil or not PManager:IsValid() then return end
         PManager.GamePlayerPawns[1].ForceInvisibleGhost = true
-        ExecuteWithDelay(30000, function ()
+        ExecuteWithDelay(20000, function ()
             PManager.GamePlayerPawns[1].ForceInvisibleGhost = false
             StylePrintToAll("The Ghost Piece Trap has expired...", MessageStyle.info)
             TrapActive = false
@@ -354,7 +354,7 @@ function PerformTrap()
     if TrapActive then return end
     local TrapNum = #QueuedTraps
     if TrapNum == 0 then return end
-    if math.random(0, 4) == 1 then
+    if math.random(0, 8) == 1 then
         local SelectedTrap = math.random(0, TrapNum)
         local Trap = TrapList[QueuedTraps[SelectedTrap]]
         if Trap ~= nil then
