@@ -273,17 +273,6 @@ function HookFunctions()
             APSendZoneChecks(ErasedLineNum:get())
         end)
 
-    -- I once had a hook for the results screen which would have been helpful to get the area score and send checks but either:
-    -- A) I call the result manager to calculate the rank and get it on the hook above, to send checks mid game; or,
-    -- B) I find that method again and make a hook for it
-    -- Option a is best tho since the player will not get to the result manager unless it's the last stage of the area, apart of the game over preventing it if they don't have the first stage of the next area
-
-
-    --TPPuzzleManager_C:SpawnTetrimino
-
-
-    --TPPuzzleManager_C:CheckB2B
-
     
     -- On main menu open
     -- Starts the ConnectionHelper widget
@@ -338,11 +327,11 @@ end
 
 -- Used for general testing
 RegisterKeyBind(Key.F7, function()
-	--debug_GiveAll()
+	debug_GiveAll()
     ---@type ATPPuzzleManager_C
     local PManager = FindFirstOf("TPPuzzleManager_C")
     if PManager == nil or not PManager:IsValid() then return end
-    PManager:ActiveMinoHold()
+    PManager:ZenLevelUp()
 end)
 
 

@@ -640,6 +640,23 @@ function ParseItem(item_name)
     
     -- Parse fillers and other
     else
+        if item_name == "Bonus points" and not IsFirstConnection then
+            ---@type ATPPuzzleManager_C
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then
+                PrettyPrint("[Item Parsing] Cannot find puzzle manager for bonus points. Player is probably not in game")
+                return
+            end
+            PManager:AddScore(1000)
+        elseif item_name == "Zone charge bonus" and not IsFirstConnection then
+            ---@type ATPPuzzleManager_C
+            local PManager = FindFirstOf("TPPuzzleManager_C")
+            if PManager == nil or not PManager:IsValid() then
+                PrettyPrint("[Item Parsing] Cannot find puzzle manager for bonus points. Player is probably not in game")
+                return
+            end
+            PManager:ZenLevelUp()
+        end
         PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
     end
 end
