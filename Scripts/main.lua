@@ -147,6 +147,7 @@ function HookFunctions()
                 --PrettyPrint(tostring(index) .. " " .. tostring(value))
                 ResIndex = value
             end
+            AccumulatedScore = GetGameScore() + AccumulatedAreaScore
             table.insert(PlayedLevels, ResIndex)
             LastStageAreaIndex = StageIndexToAreaIndex(ResIndex)
             APClearStage(ResIndex, false)
@@ -170,23 +171,17 @@ function HookFunctions()
             else
                 -- Reset the current score counter and set that we are on a diffent stage    
                 CurrentScore = 0
-                -- If the next stage is located in the next area, GetGameScore returns the area score, so we wanna clear the accumulated score
+                CurrentStage = ResIndex + 1            
                 if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage + 1) then
                     AccumulatedScore = 0
-                else
-                    table.insert(PlayedLevels, CurrentStage)
+                    PrettyPrint("Next stage does not belong to the next area. Accumulated Score reset")
                 end
-                CurrentStage = ResIndex + 1
                 
             end
             
             -- Save current game score. Will be used later if the player goes to a different stage of this area or resets it otherwise (or replaying the same level)
-            if StageIndexToAreaIndex(CurrentStage) ~= StageIndexToAreaIndex(CurrentStage + 1) then
-                AccumulatedScore = 0
-            else
-                table.insert(PlayedLevels, CurrentStage)
-                AccumulatedScore = GetGameScore()
-            end
+            table.insert(PlayedLevels, CurrentStage)
+            PrettyPrint("Saving accumulated total score with value: " .. tostring(AccumulatedScore))
             
         end)
     end)
@@ -227,7 +222,7 @@ function HookFunctions()
         ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
         ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
         function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
-            if OnEffectMode then return end
+            if OnEffectMode or ap == nil then return end
             if ShouldRecheckZone then
                 LockZone()
                 ShouldRecheckZone = false
@@ -247,13 +242,14 @@ function HookFunctions()
                 PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. ":" .. tostring(CurrentDifficulty))
                 
                 if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
-                    PrettyPrint("Reset to accumulated score")
+                    PrettyPrint("Reset to accumulated score. Score was " .. tostring(AccumulatedScore))
                     AccumulatedScore = 0
                     PlayedLevels = {}
                 else
-                    PrettyPrint("Adding score of last stage since we are on the same area")
                     AccumulatedAreaScore = AccumulatedScore
                     AccumulatedScore = 0
+                    PrettyPrint("Adding score of last stage since we are on the same area. Current total score is " .. tostring(AccumulatedAreaScore))
+                    PrintToGame("Previous stage score is being considered for area ranks. Your current total area score is " .. tostring(AccumulatedAreaScore))
                 end
                 LockZone()
             end
