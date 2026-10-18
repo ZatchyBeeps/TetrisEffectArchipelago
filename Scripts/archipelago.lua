@@ -110,7 +110,7 @@ function APCheckRank(Score, Stage, Difficulty, IsEffect)
                 local IsQuickPlay = false
                 local res = {}
                 StageManager.ModeBehavior:IsQuickPlay(res)
-                for _, value in ipairs(res) do IsQuickPlay = value end
+                for _, value in pairs(res) do IsQuickPlay = value end
                 
                 if not IsQuickPlay then StageName = EffectLevels[8 + StageManager.ModeBehavior.PlayListKind]
                 else StageName = EffectLevels[7] end
@@ -169,7 +169,7 @@ function APClearStage(Stage, IsEffect)
                 local IsQuickPlay = false
                 local res = {}
                 StageManager.ModeBehavior:IsQuickPlay(res)
-                for _, value in ipairs(res) do IsQuickPlay = value end
+                for _, value in pairs(res) do IsQuickPlay = value end
                 
                 if not IsQuickPlay then StageName = EffectLevels[8 + StageManager.ModeBehavior.PlayListKind]
                 else StageName = EffectLevels[7] end
@@ -482,7 +482,7 @@ function connectToAp(host, slot, password)
                 LocationsToCheck = {}
             end
         end, function()
-            ap:disconnect()
+            disconnect()
         end)
         return false
     end)
