@@ -83,6 +83,8 @@ function HookFunctions()
                 end
                 local LastLevelUnlocked = 0
                 local stageLevels = 0
+				local difname = string.format("%s (%i out of %i levels completed)", ZenStoryManager.BaseWidget.Title.Difficulty.Text:ToString(), StagesCompleted, LevelsToComplete)
+				ZenStoryManager.BaseWidget.Title.Difficulty:SetText(FText(difname))
                 --print(tostring(thing:GetArrayNum()))
                 --for i, elem in pairs(tablething) do
                 AreaList:ForEach(function(i, elem)
@@ -307,7 +309,7 @@ function HookFunctions()
     end)
 
     -- Because the blueprint mod is loaded later, we wait for it to get loaded or UE4SS will not find it. Since we are on a single consistent Streamed Level, we don't have to worry about hooking things multiple times
-    ExecuteWithDelay(2000, function()
+    ExecuteWithDelay(5000, function()
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnConnect",
             function(self, server, port, slot, password)
                 if server:get():ToString() == "" then return end

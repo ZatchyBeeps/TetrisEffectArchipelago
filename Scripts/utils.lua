@@ -360,6 +360,11 @@ function PerformTrap()
         if Trap ~= nil then
             TrapActive = true
             StylePrintToAll(string.format("!!! Trap triggered! %s", QueuedTraps[SelectedTrap]), MessageStyle.warning)
+            local clientlog = FindFirstOf("ModActor_C") ---@type AModActor_C
+            if clientlog == nil or not clientlog:IsValid() then PrettyPrint("Could not display trap message") 
+            else
+                clientlog.StatusBoxText:DoTrapWarning(DisplayTrapNames[QueuedTraps[SelectedTrap]])
+            end
             table.remove(QueuedTraps, SelectedTrap)
             Trap()
             
@@ -453,4 +458,16 @@ GameResultToModeID =
     [17] = 7, --This seems to be all playlists and quick play
     [19] = 1,
     [20] = 5
+}
+
+-- Yeah I'm lazy enough to do this rather than just trimming the "Trap" part or doing a bunch of if's
+DisplayTrapNames = {
+    ["Lines Trap"] = "Bump Up",
+    ["Giant Mino Trap"] = "Giant",
+    ["Broken Mino Trap"] = "Triminos",
+    ["Zone Trap"] = "Zone Out",
+    ["Hold Trap"] = "No Hold",
+    ["Queue Trap"] = "No Next",
+    ["Speed Trap"] = "Fast",
+    ["Ghost Piece Trap"] = "Hide Ghost"
 }

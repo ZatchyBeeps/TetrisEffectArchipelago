@@ -12,4 +12,9 @@ function UStatusBox_C:ClearBox() end
 ---@param IncomingMessage FString Message to display
 function UStatusBox_C:PrintMessage(IncomingMessage) end
 
+function UStatusBox_C:ToggleHide() end
+
+---@param Name FString
+function UStatusBox_C:DoTrapWarning(Name) end
+
 
