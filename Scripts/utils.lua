@@ -363,7 +363,7 @@ function PerformTrap()
             local clientlog = FindFirstOf("ModActor_C") ---@type AModActor_C
             if clientlog == nil or not clientlog:IsValid() then PrettyPrint("Could not display trap message") 
             else
-                clientlog.StatusBoxText:DoTrapWarning(DisplayTrapNames[QueuedTraps[SelectedTrap]])
+                clientlog.StatusBoxText:DoTrapWarning(DisplayTrapNames[QueuedTraps[SelectedTrap]] or QueuedTraps[SelectedTrap])
             end
             table.remove(QueuedTraps, SelectedTrap)
             Trap()
@@ -466,6 +466,7 @@ DisplayTrapNames = {
     ["Giant Mino Trap"] = "Giant",
     ["Broken Mino Trap"] = "Triminos",
     ["Zone Trap"] = "Zone Out",
+    ["Swap Trap"] = "Swap",
     ["Hold Trap"] = "No Hold",
     ["Queue Trap"] = "No Next",
     ["Speed Trap"] = "Fast",
