@@ -397,7 +397,12 @@ function Connect(_server, _slot, _password)
         if bounce.tags and isDeathLink then
             for _, tag in ipairs(bounce.tags) do
                 if tag == "DeathLink" then
-                    local cause = #bounce.data.cause > 0 and bounce.data.cause or (bounce.data.source .. " has died...")
+                    local cause = ""
+                    if bounce.data.cause == nil then
+                        cause = bounce.data.source .. " has died..."
+                    else
+                        cause = bounce.data.cause
+                    end
                     StylePrintToAll(cause, MessageStyle.error)
                     DeathLinkPlayer()
                 end
