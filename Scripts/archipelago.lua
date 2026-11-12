@@ -17,7 +17,9 @@ GameOptions = nil ---@type table Complete list of game options obatined from the
 isGameCompleted = false -- Is the game completed?
 checkedLocations = {} ---@type {[integer]: boolean} Contains all locations confirmed as released on the multiworld
 LocationsToCheck = {} ---@type integer[] Locations to be checked in the next ap poll loop
-server = nil ---@type string Server from the last connection of the session. Includes port
+full_server = nil ---@type string Server from the last connection of the session. Includes port
+server = nil ---@type string Server from the last connection of the session
+port = nil ---@type string Port from the last connection
 slot = nil ---@type string Slot from the last connection of the session
 password = nil ---@type string Password from the last connection of the session
 isDeathLink = false -- Specifies if death link is enabled
@@ -251,7 +253,7 @@ end
 
 
 function Connect(_server, _slot, _password)
-    server = _server
+    full_server = _server
     slot = _slot
     password = _password
 
@@ -438,8 +440,8 @@ function Connect(_server, _slot, _password)
     end
 
     local uuid = ""
-    ap = APCli(uuid, GameName, server) ---@type APClient
-    PrintToAll("Connecting to " .. server .. " as " .. slot)
+    ap = APCli(uuid, GameName, full_server) ---@type APClient
+    PrintToAll("Connecting to " .. full_server .. " as " .. slot)
 
     ap:set_socket_connected_handler(OnSocketConnected)
     ap:set_socket_error_handler(OnSocketError)
@@ -768,6 +770,6 @@ function RequestDataReset()
     disconnect()
     IsFirstConnection = true
     ExecuteWithDelay(2000, function ()
-        connectToAp(server, slot, password)
+        connectToAp(full_server, slot, password)
     end)
 end

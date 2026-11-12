@@ -4,6 +4,7 @@ UEHelpers = require("UEHelpers")
 
 require("utils")
 require("archipelago")
+require("save_helper")
 local modHelper = nil
 local ModVersion = "V0.2.0"
 
@@ -284,7 +285,7 @@ function HookFunctions()
         ExecuteInGameThread(function()
             modHelper = FindFirstOf("ModActor_C")
             if modHelper:IsValid() then
-                modHelper:CreateAPMenu()
+                modHelper:CreateAPMenu(server, port, slot, password)
                 modHelper:SetModVersion(ModVersion)
             end
         end)
@@ -313,8 +314,8 @@ function HookFunctions()
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnConnect",
             function(self, server, port, slot, password)
                 if server:get():ToString() == "" then return end
-                connectToAp(server:get():ToString() .. ":" .. port:get():ToString(), slot:get():ToString(),
-                    password:get():ToString())
+                connectToAp(server:get():ToString() .. ":" .. port:get():ToString(), slot:get():ToString(), password:get():ToString())
+                SaveConnectionInfo(server:get():ToString(), port:get():ToString(), slot:get():ToString(), password:get():ToString())
             end)
 
         RegisterHook("/Game/Mods/TetrisEffectArchipelago/ConectionHelper.ConectionHelper_C:OnDisconnect",
@@ -324,6 +325,11 @@ function HookFunctions()
     end)
 
     Ready = true
+    local savedata = ReadAPSave()
+    server = savedata["server"]
+    port = savedata["port"]
+    slot = savedata["slot"]
+    password = savedata["password"]
 end
 
 -- Used for general testing
@@ -355,14 +361,7 @@ RegisterKeyBind(Key.F8, function() -- Debug
 end)
 
 RegisterKeyBind(Key.F9, function() -- Debug
-    ExecuteInGameThread(function()
-        ---@type AModActor_C
-        modHelper = FindFirstOf("ModActor_C")
-        if modHelper ~= nil and modHelper:IsValid() then
-            modHelper.ConnectionHelper:OnDisconnect()
-        end
-        disconnect()
-    end)
+    SaveData()
 end)
 
 
