@@ -15,6 +15,7 @@ local CurrentScore = 0
 local AccumulatedScore = 0
 local AccumulatedAreaScore = 0
 local CurrentStage = 0
+local CurrentEffectMode = 0
 local LastStageAreaIndex = -1
 local LastPlayedStage = -1
 local CurrentDifficulty = 0
@@ -35,8 +36,9 @@ function HookFunctions()
         function(self)
             OnOasisMenuOpen()
             if ap == nil then PrintToAll("Warning! You haven't connected to archipelago yet! All stages are locked by default, so go back to the main menu and connect to a multiworld") end
-
+            
             OnEffectMode = true
+            CurrentEffectMode = -1
             local widget = self:get()
             --print(self:type())
             --print(widget:type())
@@ -228,11 +230,18 @@ function HookFunctions()
         ---@param XLScaleFactor any | integer Unknown. Seems to always be 1
         ---@param Score any | integer Returned value. Total score added from the calculation. Does not include hard/soft drop bonues, so it remains 0 if no lines were cleared
         function(self, ErasedLineNumber, TSpinRank, Ren, B2B, AllClear, XLScaleFactor, Score)
-            if OnEffectMode or ap == nil then return end
+            if ap == nil then return end
             if ShouldRecheckZone then
                 LockZone()
                 ShouldRecheckZone = false
             end
+
+            if OnEffectMode then
+                APDoTrickChecks(ErasedLineNumber:get(), TSpinRank:get(), Ren:get(), B2B:get(), AllClear:get(), CurrentEffectMode)
+                return
+            end
+
+
             if CurrentStage == -1 then
                 local StageIndex = {}
                 FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
@@ -273,6 +282,12 @@ function HookFunctions()
     RegisterHook("/Game/BluePrints/Game/Puzzle/TPPuzzleManager.TPPuzzleManager_C:FinishZenMode",
         function(self, ErasedLineNum)
             APSendZoneChecks(ErasedLineNum:get())
+        end)
+
+    RegisterHook("/Game/BluePrints/Menu/Oasis/Widget/Menu_OasisSelectPlayModeVScroll_Widget.Menu_OasisSelectPlayModeVScroll_Widget_C:GetIndexLastSelected",
+        function(self, Index)
+            CurrentEffectMode = Index:get()
+            PrettyPrint("Mode selected: " .. tostring(Index:get()))
         end)
 
     
@@ -361,7 +376,7 @@ RegisterKeyBind(Key.F8, function() -- Debug
 end)
 
 RegisterKeyBind(Key.F9, function() -- Debug
-    SaveData()
+    Helper_OnDisconnect()
 end)
 
 

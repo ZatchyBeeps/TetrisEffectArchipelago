@@ -32,6 +32,7 @@ ZoneUnlocked = false -- Specifies if the player is able to use their zone
 LevelsToComplete = 0 -- Total amount of levels for the player to access the goal area
 StagesCompleted = 0 -- Total stages completed of this randomizer
 local GroupedZoneLocations = false
+local AllowTricksOnEffectType = 0
 
 local UnlockedZenLevels = MakeSet(26)
 local UnlockedEffectLevels = MakeSet(16)
@@ -193,7 +194,14 @@ end
 ---@param ComboAmount integer Combo amount, if any
 ---@param WasB2B boolean Did we got a back to back action?
 ---@param WasAllClear boolean Did this action resulted in an all clear?
-function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear)
+---@param InEffect? integer If this is called on an Effect mode, set this to the modes id
+function APDoTrickChecks(LinesCleared, TSpinType, ComboAmount, WasB2B, WasAllClear, InEffect)
+    if InEffect ~= nil then
+        if AllowTricksOnEffectType == 0 then return
+        elseif AllowTricksOnEffectType == 1 and (InEffect ~= 0 or InEffect ~= 1) then return
+        elseif AllowTricksOnEffectType == 2 and (InEffect == 11 or InEffect == 12 or InEffect == 13) then return
+        end
+    end
     if LinesCleared == 4 then TetrisNum = TetrisNum + 1 end
     if TSpinType ~= 0 then TSpinNum = TSpinNum + 1 end
     if ComboAmount == 4 then SendNext(ap:get_location_id("Made a 4 line combo 1 times")) end
@@ -308,6 +316,8 @@ function Connect(_server, _slot, _password)
         ZoneUnlocked = GameOptions.start_with_zone == 1
         LevelsToComplete = GameOptions.stages_required
         GroupedZoneLocations = GameOptions.zone_locations_behaviour == 1
+        AllowTricksOnEffectType = GameOptions.allow_tricks_on_effect
+
         PrettyPrint("[Archipelago] [Room Info] Requiring amount of stages: " .. tostring(LevelsToComplete))
 
         --ParseItemUnlocks()
