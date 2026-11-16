@@ -14,7 +14,7 @@ local initialized = false
 ---@return {[string]: any}
 function ReadAPSave()
     savefile = io.open("ue4ss\\ap_savedata.txt", "r")
-    if not savefile then session = base_data return base_data end
+    if not savefile then session = base_data PrettyPrint("[Save Data] Archipelago save data not found. Starting new file.") return base_data end
     local ses_data = base_data
     ses_data["server"] = savefile:read("l")
     ses_data["port"] = savefile:read("l")
@@ -45,6 +45,7 @@ function ReadAPSave()
     ses_data["modes_stats"] = level_stats
     session = ses_data
     savefile:close()
+    PrettyPrint("[Save Data] Saved data has been read and loaded" )
     return ses_data
 end
 
@@ -61,10 +62,11 @@ function SaveConnectionInfo(server, port, slot, password)
     session["port"] = port
     session["slot"] = slot
     session["password"] = password
-    
+    SaveData()
 end
 
 function SaveData()
+    PrettyPrint("[Save Data] Attempting to save session data...")
     local data_string = string.format("%s\n%s\n%s\n%s\n%s\n%s\n%s",
     session["server"],
     session["port"],
@@ -77,6 +79,7 @@ function SaveData()
     savefile = io.open("ue4ss\\ap_savedata.txt", "w")
     savefile:write(data_string)
     savefile:close()
+    PrettyPrint("[Save Data] Saved successfully")
 end
 
 function SaveLevelStats(stage_id, is_completed, last_rank, is_effect)
