@@ -276,6 +276,7 @@ function Connect(_server, _slot, _password)
 
     function OnSocketDisconnected()
         StylePrintToAll("[Archipelago] Connection to archipelago was lost. Reconnecting...", MessageStyle.error)
+        StagesCompleted = 0
     end
 
     function HandleRoomInfo()
@@ -643,7 +644,7 @@ function ParseItem(item_name)
             PrettyPrint("[Item Parsing] Received and unlocked mode: " .. item_name)
             return
         end
-        if item_name == "Zone Unlock" and not ZoneUnlocked then
+        if item_name == "Zone Unlock" and not ZoneUnlocked and not IsFirstConnection then
             ZoneUnlocked = true
             PrintToAll("[Item Parsing] You got your Zone!")
             LockZone() -- Should enable it back mid game
