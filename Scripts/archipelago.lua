@@ -649,7 +649,7 @@ function ParseItem(item_name)
             PrintToAll("[Item Parsing] You got your Zone!")
             LockZone() -- Should enable it back mid game
         end
-        PrettyPrint("[Item Parsing] Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. Report it to the developer")
+        PrettyPrint("[Item Parsing] Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. The notification could also have been skipped due to receiving the item during connection. Report it to the developer")
     
     -- Parse traps
     elseif string.find(item_name, "Trap") ~= nil and not IsFirstConnection then
@@ -677,10 +677,11 @@ function ParseItem(item_name)
             PManager:ZenLevelUp()
             PrettyPrint("[Item Parsing] Increased zone gauge!")
         else
-            PrettyPrint("[Item Parsing] Received item " .. item_name .. " which was deemed a filler item. If the item was not recognized as an unlock or trap please report it to the developer")
+            PrettyPrint("[Item Parsing] Received item " .. item_name .. " which could be a filler item or it's notification was skipped (usually from receiving during connection). If the item was not recognized as an unlock or trap please report it to the developer")
         end
     end
 end
+
 
 
 

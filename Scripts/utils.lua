@@ -76,6 +76,33 @@ function MakeSet(size, at_start)
     return set
 end
 
+---@return ATPPuzzleManager_C | nil
+function GetPuzzleManager()
+    local Manager = FindFirstOf("TPPuzzleManager_C") --- @type ATPPuzzleManager_C
+    if Manager == nil then
+        PrettyPrint("Could not find puzzle manager!")
+        return nil
+    end
+    return Manager
+end
+
+---@return ATPStageManager_C | nil
+function GetStageManager()
+    local Manager = FindFirstOf("TPStageManager_C") --- @type ATPStageManager_C
+    if Manager == nil then
+        PrettyPrint("Could not find puzzle manager!")
+        return nil
+    end
+    return Manager
+end
+
+function RetrieveReturnValue(holder)
+    for _, value in pairs(holder) do
+        return value
+    end
+    return nil
+end
+
 function PrintToGame(message)
     modHelper = FindFirstOf("ModActor_C")
     if modHelper:IsValid() then

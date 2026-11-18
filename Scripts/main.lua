@@ -214,7 +214,28 @@ function HookFunctions()
         PrettyPrint("========================================")
         PrettyPrint("Begin stage")
         LockZone()
-        CurrentStage = -1 -- Prevents score stacking if the player retries/tops out
+        ExecuteWithDelay(1500, function ()
+            local StMan = GetStageManager()
+            if StMan == nil then StylePrintToAll("Error! Could not retrieve stage info! Please restart the stage and report this to the developer.", MessageStyle.error) return end
+            local res = {}
+            StMan:GetCurrentStageIndex(res)
+            CurrentStage = RetrieveReturnValue(res)
+            CurrentDifficulty = StMan.ModeBehavior.Difficulty
+            if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
+            PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. ":" .. tostring(CurrentDifficulty))
+            if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
+                PrettyPrint("Reset to accumulated score. Score was " .. tostring(AccumulatedScore))
+                AccumulatedScore = 0
+                PlayedLevels = {}
+            else
+                AccumulatedAreaScore = AccumulatedScore
+                AccumulatedScore = 0
+                PrettyPrint("Adding score of last stage since we are on the same area. Current total score is " .. tostring(AccumulatedAreaScore))
+                --PrintToGame("Previous stage score is being considered for area ranks. Your current total area score is " .. tostring(AccumulatedAreaScore))
+            end
+            GetPuzzleManager().StackedScore = {AccumulatedAreaScore}
+        end)
+        
         
     end)
 
@@ -242,34 +263,33 @@ function HookFunctions()
             end
 
 
-            if CurrentStage == -1 then
-                local StageIndex = {}
-                FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
-                for _, value in pairs(StageIndex) do
-                    CurrentStage = value
-                end
-                ---@type ATPStageManager_C
-                local StageManager = FindFirstOf("TPStageManager_C")
-                if StageManager ~= nil then
-                    CurrentDifficulty = StageManager.ModeBehavior.Difficulty
-                    if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
-                end
-                PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. ":" .. tostring(CurrentDifficulty))
+            --if CurrentStage == -1 then
+            --    local StageIndex = {}
+            --    FindFirstOf("TPStageManager_C"):GetCurrentStageIndex(StageIndex)
+            --    for _, value in pairs(StageIndex) do
+            --        CurrentStage = value
+            --    end
+            --    ---@type ATPStageManager_C
+            --    local StageManager = FindFirstOf("TPStageManager_C")
+            --    if StageManager ~= nil then
+            --        CurrentDifficulty = StageManager.ModeBehavior.Difficulty
+            --        if CurrentDifficulty == 0 then CurrentDifficulty = 1 end
+            --    end
+            --    PrettyPrint("Loading values from new level and difficulty " .. tostring(CurrentStage) .. ":" .. tostring(CurrentDifficulty))
                 
-                if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
-                    PrettyPrint("Reset to accumulated score. Score was " .. tostring(AccumulatedScore))
-                    AccumulatedScore = 0
-                    PlayedLevels = {}
-                else
-                    AccumulatedAreaScore = AccumulatedScore
-                    AccumulatedScore = 0
-                    PrettyPrint("Adding score of last stage since we are on the same area. Current total score is " .. tostring(AccumulatedAreaScore))
-                    PrintToGame("Previous stage score is being considered for area ranks. Your current total area score is " .. tostring(AccumulatedAreaScore))
-                end
-                LockZone()
-            end
-            -- To-do: calculate per-stage rank requirements. The score here does not return with hard/soft bonus so idk maybe use TPPuzzleManager_C:AddScore(Add) instead?
-            -- Also check what are we on when doing this
+            --    if IsLevelPlayed(CurrentStage) or LastStageAreaIndex ~= StageIndexToAreaIndex(CurrentStage) then
+            --        PrettyPrint("Reset to accumulated score. Score was " .. tostring(AccumulatedScore))
+            --        AccumulatedScore = 0
+            --        PlayedLevels = {}
+            --    else
+            --        AccumulatedAreaScore = AccumulatedScore
+            --        AccumulatedScore = 0
+            --        PrettyPrint("Adding score of last stage since we are on the same area. Current total score is " .. tostring(AccumulatedAreaScore))
+            --        PrintToGame("Previous stage score is being considered for area ranks. Your current total area score is " .. tostring(AccumulatedAreaScore))
+            --    end
+            --    LockZone()
+            --end
+
             CurrentScore = GetGameScore() - AccumulatedScore
             APCheckRank(CurrentScore, CurrentStage, CurrentDifficulty)
             if CurrentStage ~= 26 then APSendAreaRankChecks(GetGameScore() + AccumulatedAreaScore, StageIndexToAreaIndex(CurrentStage), CurrentDifficulty) end
