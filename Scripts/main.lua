@@ -214,7 +214,7 @@ function HookFunctions()
         PrettyPrint("========================================")
         PrettyPrint("Begin stage")
         LockZone()
-        ExecuteWithDelay(1500, function ()
+        ExecuteWithDelay(2000, function () -- Wait for stage to be initialized
             local StMan = GetStageManager()
             if StMan == nil then StylePrintToAll("Error! Could not retrieve stage info! Please restart the stage and report this to the developer.", MessageStyle.error) return end
             local res = {}
@@ -432,6 +432,10 @@ RegisterInitGameStatePostHook(function(Context)
                     PrettyPrint("Error getting mod helper! Some functions won't work")
                 end
             end)
+        end)
+    elseif Ready and not firstRun then
+        ExecuteWithDelay(2500, function()
+            FindFirstOf("ModActor_C"):RestoreTextClient()
         end)
     else
         firstRun = false
