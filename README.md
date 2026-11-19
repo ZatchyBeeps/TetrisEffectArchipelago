@@ -14,7 +14,9 @@ It is possible to contribute to this mod. To do so:
 - Do all changes that you wanna do.
 - If you wanna do changes to the UI, you will need to request for these changes as they are managed by the blueprint mod. See the files in the BModManager folder for things that said blueprint mod has.
 - Once done, create a new pull request from your forked repository to this one and I will review it when possible.
+- 
 If you would like to use annotations go to the ue4ss developer tools window while in-game, click Dumpers then click Generate Lua Types.
+
 If you wanna test things without connecting to a server, use the previously mentioned window, go to Lua Debugger, click on `TetrisEffectArchipelago [main]` (name will change depending on how you called the folder), then go to REPL and type `debug_GiveAll()`
 
 (AI usage is strictly prohibited. If found using it, your pull request will be declined and you'll be blacklisted from contributing)
