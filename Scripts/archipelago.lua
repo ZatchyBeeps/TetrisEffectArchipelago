@@ -644,10 +644,12 @@ function ParseItem(item_name)
             PrettyPrint("[Item Parsing] Received and unlocked mode: " .. item_name)
             return
         end
-        if item_name == "Zone Unlock" and not ZoneUnlocked and not IsFirstConnection then
+        if item_name == "Zone Unlock" and not ZoneUnlocked then
             ZoneUnlocked = true
             PrintToAll("[Item Parsing] You got your Zone!")
-            LockZone() -- Should enable it back mid game
+            if (not IsFirstConnection) then
+                LockZone() -- Should enable it back mid game
+            end
         end
         PrettyPrint("[Item Parsing] Received item " ..item_name .." but it's feature is not yet implemented or the item was not recognized. The notification could also have been skipped due to receiving the item during connection. Report it to the developer")
     
