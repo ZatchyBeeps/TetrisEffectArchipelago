@@ -6,7 +6,7 @@ require("utils")
 require("archipelago")
 require("save_helper")
 local modHelper = nil
-local ModVersion = "V0.2.1"
+local ModVersion = "V0.2.1f1"
 
 local ZenStoryByAreas = false
 local firstRun = true
